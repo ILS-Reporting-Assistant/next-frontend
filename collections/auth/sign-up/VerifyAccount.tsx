@@ -5,9 +5,14 @@ import { CompanyLogo } from '~public'
 import { MultiDigitInput } from '~collections'
 import { ROUTE } from '@app/data'
 import { useRouter } from 'next/router'
+import { authService, extractErrorMessage } from '@app/services'
+import { isValidationError } from '@app/utils'
+import { useDispatch } from 'react-redux'
+import { logout } from '@app/redux'
 
 export const VerifyAccount = () => {
   const router = useRouter()
+  const dispatch = useDispatch()
   const [otp, setOtp] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
@@ -24,9 +29,22 @@ export const VerifyAccount = () => {
 
     try {
       setIsVerifying(true)
-      await new Promise((r) => setTimeout(r, 600))
-      Notification({ message: 'Account verified', type: 'success' })
+      const data = await authService.verifyOtp({ otp })
+      Notification({
+        message: 'Email verified successfully',
+        description: data.message ?? 'Your email has been verified. You can now access your account.',
+        type: 'success',
+      })
+
       router.replace(ROUTE.ONBOARDING)
+    } catch (error: any) {
+      if (isValidationError(error)) return
+
+      Notification({
+        message: 'Verification failed',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
     } finally {
       setIsVerifying(false)
     }
@@ -35,11 +53,24 @@ export const VerifyAccount = () => {
   const handleResendOtp = async () => {
     try {
       setIsResending(true)
-      await new Promise((r) => setTimeout(r, 600))
+      await authService.resendOtp()
       Notification({ message: 'Code sent', description: 'A new verification code has been sent to your email.' })
+    } catch (error) {
+      if (isValidationError(error)) return
+
+      Notification({
+        message: 'Failed to resend code',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
     } finally {
       setIsResending(false)
     }
+  }
+
+  const handleLogout = () => {
+    dispatch(logout())
+    router.replace(ROUTE.AUTH.SIGN_IN)
   }
 
   return (
@@ -58,8 +89,12 @@ export const VerifyAccount = () => {
       <StyledText>Didn't receive the code? </StyledText>
       <StyledResendLink onClick={handleResendOtp}>{isResending ? 'Sending…' : 'Resend code'}</StyledResendLink>
       <Spacer value={32} />
-      <StyledButton onClick={handleVerifyOtp} disabled={isVerifying}>
+      <StyledButton onClick={handleVerifyOtp} disabled={isVerifying} loading={isVerifying}>
         {isVerifying ? 'Verifying...' : 'Verify Account'}
+      </StyledButton>
+      <Spacer value={16} />
+      <StyledButton type="default" onClick={handleLogout}>
+        Logout
       </StyledButton>
     </StyledVerifyBox>
   )

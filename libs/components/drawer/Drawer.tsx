@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { StyledDrawer } from './elements'
 
-const DEFAULT_WIDTH = '650'
+const DEFAULT_WIDTH = '500'
 
 // NOTE: We are using hooks for drawer width because styledComponent property is not working
 export const Drawer: React.FC<SideDrawerProps> = (props: SideDrawerProps) => {

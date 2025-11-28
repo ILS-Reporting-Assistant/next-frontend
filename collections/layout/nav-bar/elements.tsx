@@ -24,7 +24,7 @@ export const StyledSelect = styled((props: SelectProps<Any>) => <Select {...prop
 `
 
 export const StyledPageHeader = styled((props: PageHeaderProps) => <PageHeader {...props} />)`
-  background-color: ${(props) => props.theme.color.secondary};
+  background-color: ${(props) => props.theme.color.primary};
   padding: 15px 50px 15px 24px;
   position: sticky;
   top: 0px;

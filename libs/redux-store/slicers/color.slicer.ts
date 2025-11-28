@@ -16,7 +16,7 @@ export interface IColor {
 
 const initialState = {
   error: '#D8382B',
-  primary: '#268AC2',
+  primary: '#000000',
   secondary: '#D9D9D9',
   white: '#fff',
   background: '#fff',

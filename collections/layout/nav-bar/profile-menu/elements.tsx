@@ -11,7 +11,7 @@ export const StyledButton = styled((props: ButtonProps) => <Button {...props} ty
   box-shadow: none;
 `
 export const StyledText = styled((props: TextProps) => <Text {...props} />)`
-  color: ${(props) => props.theme.color.white};
+  color: #fff;
 `
 export const StyledBadge = styled((props: BadgeProps) => <Badge {...props} />)`
   .ant-badge-count {

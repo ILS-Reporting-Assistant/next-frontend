@@ -4,7 +4,21 @@ import { ROUTE } from '../routes'
 
 export const FORGOT_PASSWORD_FORM: IField[] = [
   {
-    label: 'Email',
+    align: 'center',
+    href: ROUTE.AUTH.SIGN_UP,
+    name: 'forgotYourPassword',
+    placeholder: '',
+    rules: [
+      {
+        required: false,
+      },
+    ],
+    title: 'Don`t have an account? ',
+    linkText: 'Sign up here',
+    type: EDynamicFormField.NAVIGATION,
+  },
+  {
+    label: 'Email*',
     name: 'email',
     placeholder: 'Enter Email',
     rules: [
@@ -25,19 +39,5 @@ export const FORGOT_PASSWORD_FORM: IField[] = [
     ],
     title: 'Send Reset Email',
     type: EDynamicFormField.PRIMARY_BUTTON,
-  },
-  {
-    align: 'center',
-    href: ROUTE.AUTH.SIGN_UP,
-    name: 'forgotYourPassword',
-    placeholder: '',
-    rules: [
-      {
-        required: false,
-      },
-    ],
-    title: 'Don`t have an account? ',
-    linkText: 'Sign up here',
-    type: EDynamicFormField.NAVIGATION,
   },
 ]

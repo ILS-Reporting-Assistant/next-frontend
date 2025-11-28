@@ -1,8 +1,14 @@
-import { StyledText, StyledOnboardingBox, StyledButton } from './elements'
 import { Spacer, Title } from '@app/components'
+import { ROUTE } from '@app/data'
+import { useRouter } from 'next/router'
 import { CompanyLogo } from '~public'
+import { StyledButton, StyledOnboardingBox } from './elements'
 
 export const Onboarding = () => {
+  const router = useRouter()
+  const handleGetStarted = () => {
+    router.replace(ROUTE.DASHBOARD)
+  }
   return (
     <StyledOnboardingBox>
       <CompanyLogo height={100} />
@@ -11,7 +17,7 @@ export const Onboarding = () => {
       <Spacer value={16} />
       {/* <StyledText></StyledText> */}
       <Spacer value={50} />
-      <StyledButton>Let's Get Started!</StyledButton>
+      <StyledButton onClick={handleGetStarted}>Let's Get Started!</StyledButton>
     </StyledOnboardingBox>
   )
 }

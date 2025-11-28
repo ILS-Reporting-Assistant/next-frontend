@@ -102,3 +102,26 @@ export const StyledLink = styled((props: LinkProps) => <Link {...props} />)`
   font-size: 16px;
   font-weight: medium;
 `
+export const OptionCard = styled(({ $selected, ...rest }: BoxProps & { $selected: boolean }) => <Box {...rest} />)`
+  border: 1px solid ${({ $selected }) => ($selected ? '#000' : '#e5e5e5')};
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    border-color: #000;
+  }
+
+  .title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #777;
+    margin-top: 4px;
+  }
+`
