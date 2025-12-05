@@ -6,6 +6,7 @@ import { IStore } from '@app/redux'
 import { usersService, extractErrorMessage } from '@app/services'
 import { InviteUserFormValues, InviteUserProps } from '@app/types'
 import { isValidationError } from '@app/utils'
+import { StyledFormInput, StyledFormSelect } from './elements'
 
 export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
   const [form] = useForm()
@@ -110,11 +111,11 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
     >
       <Form form={form} layout="vertical">
         <Form.Item label="First Name" name="firstName" rules={[{ required: true, message: 'Please enter first name' }]}>
-          <Input placeholder="Enter first name" />
+          <StyledFormInput placeholder="Enter first name" />
         </Form.Item>
 
         <Form.Item label="Last Name" name="lastName" rules={[{ required: true, message: 'Please enter last name' }]}>
-          <Input placeholder="Enter last name" />
+          <StyledFormInput placeholder="Enter last name" />
         </Form.Item>
 
         <Form.Item
@@ -125,11 +126,11 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
             { type: 'email', message: 'Please enter a valid email' },
           ]}
         >
-          <Input placeholder="Enter email" />
+          <StyledFormInput placeholder="Enter email" />
         </Form.Item>
 
         <Form.Item label="Role*" name="role" rules={[{ required: true, message: 'Select role' }]}>
-          <Select
+          <StyledFormSelect
             placeholder="Select role"
             options={[
               { label: 'Admin', value: 'admin' },

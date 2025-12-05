@@ -60,5 +60,9 @@ export const StyledLoginBox = styled((props: BoxProps) => <Box {...props} />)`
   border: 1px solid #dddddd;
   border-radius: 16px;
   padding: 32px;
-  width: 100%;
+  width: 385px;
+  
+  @media only screen and (max-width: ${maxMobile}) {
+    width: 100%;
+  }
 `

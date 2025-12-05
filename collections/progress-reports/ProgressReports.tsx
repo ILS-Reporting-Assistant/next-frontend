@@ -1,9 +1,12 @@
 import { Box, Button, Dropdown, Icon, Spacer, Table, Title } from '@app/components'
 import React from 'react'
 import { StyledFlexContainer, StyledSearch } from './elements'
-import { ProgressReportsData } from '@app/data'
+import { ProgressReportsData, ROUTE } from '@app/data'
+import { useRouter } from 'next/router'
+
 
 export const ProgressReports = () => {
+  const router = useRouter()
   const columns = [
     {
       title: 'Report Name',
@@ -43,7 +46,7 @@ export const ProgressReports = () => {
     <Box>
       <StyledFlexContainer>
         <Title level={2}>Progress Reports</Title>
-        <Button>Create New Report</Button>
+        <Button onClick={() => router.replace(ROUTE.CREATE_PROGRESS_REPORTS)}>Create New Report</Button>
       </StyledFlexContainer>
       <Spacer value={16} />
       <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />

@@ -62,6 +62,9 @@ export const THEME = (theme: ETheme, isCompact: boolean): ThemeConfig => {
       Modal: {
         fontSizeHeading5: 16,
       },
+      Select: {
+        controlHeight: 40,
+      },
     },
     token: {
       colorBgBase: COLOR.background,

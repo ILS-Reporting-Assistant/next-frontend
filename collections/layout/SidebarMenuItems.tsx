@@ -19,10 +19,28 @@ export const SIDEBAR_MENU_ITEMS = (): MenuItem[] => {
         route: '/dashboard',
       },
       {
+        icon: <Icon.UserOutlined />,
+        key: 'clients',
+        label: 'Clients',
+        route: '/clients',
+      },
+      {
+        icon: <Icon.FileTextOutlined />,
+        key: 'assessment-reports',
+        label: 'Initial Assessment Reports',
+        route: '/assessment-reports',
+      },
+      {
         icon: <Icon.LineChartOutlined />,
         key: 'progress-reports',
         label: 'Progress Reports',
         route: '/progress-reports',
+      },
+      {
+        icon: <Icon.ProfileOutlined />,
+        key: 'isp-reviews',
+        label: 'Annual ISP Review',
+        route: '/isp-reviews',
       },
     ]
 
@@ -34,10 +52,18 @@ export const SIDEBAR_MENU_ITEMS = (): MenuItem[] => {
         route: '/users',
       })
     }
+    
+    items.push({
+      icon: <Icon.SettingOutlined />,
+      key: 'account-setting',
+      label: 'Settings',
+      route: '/account-setting',
+    })
+    
     return items
   }, [user])
 
-  const onClick = (route: string) => {
+  const handleRouteClick = (route: string) => {
     router.push(route)
   }
 
@@ -46,13 +72,7 @@ export const SIDEBAR_MENU_ITEMS = (): MenuItem[] => {
     key: item.key,
     label: item.label,
     onClick: () => {
-      onClick(item.route)
+      handleRouteClick(item.route)
     },
-    // children: item.children?.map((subMenu) => ({
-    //   icon: subMenu.icon,
-    //   key: subMenu.key,
-    //   label: subMenu.label,
-    //   onClick: () => onClick(subMenu.route) as any,
-    // })),
   }))
 }

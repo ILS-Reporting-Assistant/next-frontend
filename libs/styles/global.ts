@@ -40,6 +40,12 @@ export const GlobalStyles = createGlobalStyle`
     box-shadow: none;
   }
 
+  .ant-table-wrapper .ant-table-tbody > tr > td,
+  .ant-table-wrapper .ant-table-thead > tr > th {
+    height: 50px !important;
+    padding: 12px 16px !important; 
+  }
+
   &&.ant-input-outlined:focus,
   .ant-input-outlined:focus-within {
     box-shadow: none !important;
@@ -51,6 +57,21 @@ export const GlobalStyles = createGlobalStyle`
 
   &&.ant-select-selector {
     box-shadow: none !important;
+  }
+
+  /* Global input font size */
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-input-search .ant-input,
+  .ant-select-selector,
+  .ant-picker-input input,
+  .ant-input-group .ant-input,
+  textarea.ant-input,
+  .ant-input-group-wrapper .ant-input,
+  .ant-input-number-input,
+  .ant-input-affix-wrapper .ant-input {
+    font-size: 14px !important;
   }
 
   body {

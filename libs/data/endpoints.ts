@@ -12,11 +12,21 @@ export const ENDPOINT = {
     USERS: (organizationId: string) => `/organizations/${organizationId}/users`,
     INVITATIONS: (organizationId: string) => `/organizations/${organizationId}/invitations`,
   },
+  CLIENTS: {
+    LIST: '/clients',
+    GET: (clientId: string) => `/clients/${clientId}`,
+    CREATE: '/clients',
+    UPDATE: (clientId: string) => `/clients/${clientId}`,
+    DELETE: (clientId: string) => `/clients/${clientId}`,
+  },
   INVITATIONS: {
     CREATE: (organizationId: string) => `/invitations/${organizationId}/invite`,
     RESEND: (organizationId: string) => `/invitations/${organizationId}/resend`,
     DELETE: (organizationId: string, invitationId: string) => `/invitations/${organizationId}/${invitationId}`,
     VERIFY: '/invitations/verify',
     COMPLETE: '/invitations/complete',
+  },
+  STORAGE: {
+    UPLOAD_DOCUMENT: '/storage/upload/document',
   },
 }

@@ -1,3 +1,5 @@
 export * from './auth'
 export * from './httpClient'
 export * from './users'
+export * from './storage'
+export * from './clients'

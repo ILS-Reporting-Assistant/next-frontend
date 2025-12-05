@@ -1,30 +1,45 @@
-import { Box, Col, Icon, Row, Spacer, Text, Title } from '@app/components'
-import React from 'react'
-import { Label, StyledBox, StyledButton, StyledText } from './elements'
-import { Badge } from 'antd'
+import { Box, Col, Icon, Row, Spacer } from '@app/components'
+import { DashboardCardData } from '@app/types'
+import { Label, StyledBox, StyledButton, StyledButtonWrapper, StyledCardContent, StyledCardIcon, StyledCardText, StyledRibbon, StyledRibbonIcon, StyledRibbonText, StyledRow, StyledText, StyledWelcomeTitle } from './elements'
 
 export const Dashboard = () => {
-  const cardsData = [
+  const cardsData: DashboardCardData[] = [
     {
-      icon: <Icon.FileTextOutlined style={{ fontSize: '24px' }} />,
+      icon: (
+        <StyledCardIcon>
+          <Icon.FileTextOutlined />
+        </StyledCardIcon>
+      ),
       title: 'Initial Assessment Report',
       description: 'New client intake and initial service planning.',
       buttonText: 'Create New Report',
     },
     {
-      icon: <Icon.LineChartOutlined style={{ fontSize: '24px' }} />,
+      icon: (
+        <StyledCardIcon>
+          <Icon.LineChartOutlined />
+        </StyledCardIcon>
+      ),
       title: 'Progress Report',
       description: 'Ongoing service update including growth, goals, and support needs.',
       buttonText: 'Create New Report',
     },
     {
-      icon: <Icon.ProfileOutlined style={{ fontSize: '24px' }} />,
+      icon: (
+        <StyledCardIcon>
+          <Icon.ProfileOutlined />
+        </StyledCardIcon>
+      ),
       title: 'Annual ISP Review',
       description: 'Comprehensive yearly assessment and planning.',
       buttonText: 'Create New Report',
     },
     {
-      icon: <Icon.FormOutlined style={{ fontSize: '24px' }} />,
+      icon: (
+        <StyledCardIcon>
+          <Icon.FormOutlined />
+        </StyledCardIcon>
+      ),
       title: 'Custom Reports',
       description: 'Flexible reporting for special circumstances.',
       buttonText: 'Create New Report',
@@ -34,36 +49,40 @@ export const Dashboard = () => {
 
   const renderCards = (card) => {
     const content = (
-      <StyledBox>
-        <Row gutter={[0, 0]}>
-          <Col span={24} xs={3}>
-            <Spacer value={8} />
+      <StyledBox disabled={card?.disable}>
+        <Row gutter={[16, 0]}>
+          <Col span={3} xs={3}>
             {card.icon}
           </Col>
-          <Col span={24} xs={21}>
-            <Text>{card.title}</Text>
-            <Spacer value={1} />
-            <Label>{card.description}</Label>
-            <Spacer value={24} />
+          <Col span={21} xs={21}>
+            <StyledCardContent>
+              <StyledCardText>{card.title}</StyledCardText>
+              <Label>{card.description}</Label>
+            </StyledCardContent>
+            <StyledButtonWrapper>
+              <StyledButton disabled={card?.disable}>{card.buttonText}</StyledButton>
+            </StyledButtonWrapper>
           </Col>
-          <StyledButton disabled={card?.disable}>{card.buttonText}</StyledButton>
         </Row>
       </StyledBox>
     )
 
     if (card?.disable) {
       return (
-        <Badge.Ribbon
+        <StyledRibbon
           text={
-            <Text color="#313C77">
-              <Icon.NotificationOutlined style={{ color: '#313C77' }} /> Coming Soon
-            </Text>
+            <StyledRibbonText>
+              <StyledRibbonIcon>
+                <Icon.NotificationOutlined />
+              </StyledRibbonIcon>
+              Coming Soon!
+            </StyledRibbonText>
           }
           color="#C4D8FF"
           placement="start"
         >
           {content}
-        </Badge.Ribbon>
+        </StyledRibbon>
       )
     }
 
@@ -72,18 +91,17 @@ export const Dashboard = () => {
 
   return (
     <Box>
-      <Title level={1}>Welcome, John!</Title>
+      <StyledWelcomeTitle level={1}>Welcome, John!</StyledWelcomeTitle>
       <StyledText>What kind of report are we working on today?</StyledText>
       <Spacer value={8} />
-      <Label>Select the type of ILS report you’d like to create.</Label>
       <Spacer value={24} />
-      <Row gutter={[16, 16]}>
+      <StyledRow gutter={[16, 16]}>
         {cardsData.map((card, index) => (
           <Col key={index} span={24} lg={12} xs={24}>
             {renderCards(card)}
           </Col>
         ))}
-      </Row>
+      </StyledRow>
     </Box>
   )
 }

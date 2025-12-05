@@ -53,7 +53,7 @@ export const ResetPassword: React.FC = () => {
       })
 
       Notification({
-        message: 'Password updated',
+        message: 'Password Reset Successful',
         description:
           response.message ??
           'Great! Your password has been reset successfully. You can now log in with your new password.',
@@ -63,7 +63,7 @@ export const ResetPassword: React.FC = () => {
       router.replace(ROUTE.AUTH.SIGN_IN)
     } catch (error) {
       Notification({
-        message: 'Unable to reset password',
+        message: 'Password Reset Failed',
         description: extractErrorMessage(error),
         type: 'error',
       })

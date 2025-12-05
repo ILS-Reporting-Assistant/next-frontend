@@ -45,6 +45,13 @@ httpClient.interceptors.request.use((config) => {
     return authConfig
   }
 
+  // If data is FormData, remove Content-Type to let axios set it automatically with boundary
+  if (config.data instanceof FormData) {
+    if (config.headers) {
+      delete (config.headers as any)['Content-Type']
+    }
+  }
+
   const {
     user: { accessToken },
   } = store.getState()

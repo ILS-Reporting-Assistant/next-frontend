@@ -1,3 +1,4 @@
+export * from './AddClient.form'
 export * from './ForgotPassword.form'
 export * from './Invitation.form'
 export * from './SignIn.form'
