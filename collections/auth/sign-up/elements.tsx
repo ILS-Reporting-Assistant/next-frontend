@@ -1,4 +1,4 @@
-import { Box, Button, Col, Link, Row, Text, Title } from '@app/components'
+import { Box, Button, Col, Link, Progress, Row, Text, Title } from '@app/components'
 import { maxComputer, maxMobile, maxTablet } from '@app/styles'
 import { BoxProps, ButtonProps, ColProps, LinkProps, RowProps, TextProps } from '@app/types'
 import { TitleProps } from 'antd/es/typography/Title'
@@ -10,6 +10,7 @@ export const StyledRow = styled((props: RowProps) => <Row {...props} />)`
 `
 
 export const StyledTitle = styled((props: TitleProps) => <Title {...props} />)`
+margin-bottom:0px !important;
   @media only screen and (max-width: ${maxMobile}) {
     text-align: center;
   }
@@ -69,7 +70,101 @@ export const StyledLoginBox = styled((props: BoxProps) => <Box {...props} />)`
   border: 1px solid #dddddd;
   border-radius: 16px;
   padding: 32px;
-  width: 100%;
+  width: 500px;
+  
+  @media only screen and (max-width: ${maxMobile}) {
+    width: 100%;
+  }
+`
+
+export const StyledProgressBarWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  margin: 10px 0;
+
+  
+  .ant-progress-bg {
+    background-color: black !important;
+  }
+`
+
+export const StyledStepText = styled((props: TextProps) => <Text {...props} />)`
+  color: #232323;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 100%;
+  padding-bottom: 20px;
+  display: block;
+`
+
+export const StyledStepContentWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  min-height: 200px;
+`
+
+export const StyledButtonWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  
+  button:only-child {
+    margin-left: auto;
+  }
+`
+
+export const StyledGoBackButton = styled((props: ButtonProps) => <Button {...props} />)`
+  background: white !important;
+  border-color: black !important;
+  color: black !important;
+  border-radius: 4px !important;
+  height: 40px;
+  padding: 0 24px;
+  font-size: 14px;
+  
+  &.ant-btn,
+  &.ant-btn-default {
+    background: white !important;
+    border-color: black !important;
+    color: black !important;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+  }
+  
+  &:hover,
+  &:hover:not(:disabled),
+  &.ant-btn:hover,
+  &.ant-btn:hover:not(:disabled) {
+    background: white !important;
+    border-color: black !important;
+    color: black !important;
+  }
+`
+
+export const StyledNextButton = styled((props: ButtonProps) => <Button {...props} />)`
+  background: black !important;
+  border: 1px solid black !important;
+  color: white !important;
+  height: 40px;
+  padding: 0 24px;
+  
+  &.ant-btn,
+  &.ant-btn-primary {
+    background: black !important;
+    border-color: black !important;
+    color: white !important;
+    height: 40px;
+    padding: 0 24px;
+  }
+  
+  &:hover,
+  &:hover:not(:disabled),
+  &.ant-btn:hover,
+  &.ant-btn-primary:hover,
+  &.ant-btn:hover:not(:disabled),
+  &.ant-btn-primary:hover:not(:disabled) {
+    background: black !important;
+    border-color: black !important;
+    color: white !important;
+  }
 `
 export const StyledVerifyBox = styled((props: BoxProps) => <Box {...props} />)`
   height: calc(100vh - 100px);

@@ -1,12 +1,12 @@
-import { Box, Col, Notification, Radio, RadioGroup, Spacer, Text, useForm } from '@app/components'
+import { Box, Col, Notification, Progress, Radio, RadioGroup, Spacer, Text, useForm } from '@app/components'
 import { ROUTE } from '@app/data'
 import { SIGN_UP_FORM } from '@app/forms'
-import { DynamicForm } from '@app/modules'
+import { DynamicForm, EDynamicFormField } from '@app/modules'
 import { login, setCurrentOrganization } from '@app/redux'
 import { authService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { CompanyLogo } from '~public'
 import {
@@ -17,6 +17,13 @@ import {
   StyledRightCol,
   StyledRow,
   StyledTitle,
+  StyledProgressBarWrapper,
+  StyledStepText,
+  StyledStepContentWrapper,
+  StyledButtonWrapper,
+  StyledGoBackButton,
+  StyledNextButton,
+  StyledNavigationBox,
 } from './elements'
 import { AccountType } from '../../../libs/enums'
 
@@ -26,57 +33,189 @@ export const SignUp: React.FC = () => {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [accountType, setAccountType] = useState('individual')
+  const [currentStep, setCurrentStep] = useState(1)
+  const [formValues, setFormValues] = useState<Record<string, any>>({}) // Store all form values
+  const totalSteps = accountType === AccountType.ORGANIZATION ? 4 : 3
+  const progressPercent = (currentStep / totalSteps) * 100
 
-  const formFields = useMemo(() => {
-    return SIGN_UP_FORM.filter((field) => {
-      // Filter out hidden fields based on account type
-      if (accountType === AccountType.INDIVIDUAL) {
-        if (field.name === 'orgName' || field.name === 'address') {
-          return false
+  useEffect(() => {
+    if (currentStep > 1) {
+      const stepFields = getStepFields()
+      if (stepFields.length > 0) {
+        const stepFieldNames = stepFields.map((field) => field.name)
+        const stepValues: Record<string, any> = {}
+        stepFieldNames.forEach((fieldName) => {
+          if (formValues[fieldName] !== undefined) {
+            stepValues[fieldName] = formValues[fieldName]
+          }
+        })
+        if (Object.keys(stepValues).length > 0) {
+          form.setFieldsValue(stepValues)
         }
       }
-      return true
-    }).map((field) => {
-      // Update labels based on account type
-      if (accountType === AccountType.INDIVIDUAL) {
-        if (field.name === 'email') {
-          return { ...field, label: 'Email*' }
-        }
-        if (field.name === 'firstName') {
-          return { ...field, label: 'First Name*' }
-        }
-        if (field.name === 'lastName') {
-          return { ...field, label: 'Last Name*' }
-        }
+    }
+  }, [currentStep, accountType])
+
+  const getStepTitle = () => {
+    if (accountType === AccountType.INDIVIDUAL) {
+      switch (currentStep) {
+        case 1:
+          return 'Select Account Type'
+        case 2:
+          return 'Personal Information'
+        case 3:
+          return 'Create Password'
+        default:
+          return ''
+      }
+    } else {
+      switch (currentStep) {
+        case 1:
+          return 'Select Account Type'
+        case 2:
+          return 'Organization Details'
+        case 3:
+          return 'Contact Information'
+        case 4:
+          return 'Create Password'
+        default:
+          return ''
+      }
+    }
+  }
+
+  const getStepFields = () => {
+    if (accountType === AccountType.INDIVIDUAL) {
+      switch (currentStep) {
+        case 1:
+          return []
+        case 2:
+          return SIGN_UP_FORM.filter(
+            (field) => field.name === 'firstName' || field.name === 'lastName' || field.name === 'email',
+          ).map((field) => {
+            if (field.name === 'email') {
+              return { ...field, label: 'Email*' }
+            }
+            if (field.name === 'firstName') {
+              return { ...field, label: 'First Name*' }
+            }
+            if (field.name === 'lastName') {
+              return { ...field, label: 'Last Name*' }
+            }
+            return field
+          })
+        case 3:
+          return SIGN_UP_FORM.filter(
+            (field) => field.name === 'password' || field.name === 'confirmPassword',
+          )
+        default:
+          return []
+      }
+    } else {
+      switch (currentStep) {
+        case 1:
+          return [] 
+        case 2:
+          return SIGN_UP_FORM.filter((field) => field.name === 'orgName' || field.name === 'address').map((field) => {
+            return { ...field, hidden: false }
+          })
+        case 3:
+          return SIGN_UP_FORM.filter(
+            (field) => field.name === 'email' || field.name === 'firstName' || field.name === 'lastName',
+          ).map((field) => {
+            if (field.name === 'email') {
+              return { 
+                ...field, 
+                label: 'Email*',
+                hidden: false,
+                rules: [
+                  {
+                    message: 'Please enter email',
+                    required: true,
+                  },
+                  {
+                    message: 'Please enter a valid email',
+                    type: 'email' as const,
+                  },
+                ] as any
+              }
+            }
+            if (field.name === 'firstName') {
+              return { ...field, label: 'First Name*' }
+            }
+            if (field.name === 'lastName') {
+              return { ...field, label: 'Last Name*' }
+            }
+            return { ...field, hidden: false }
+          })
+        case 4:
+          return SIGN_UP_FORM.filter(
+            (field) => field.name === 'password' || field.name === 'confirmPassword',
+          )
+        default:
+          return []
+      }
+    }
+  }
+
+  const handleNext = async () => {
+    try {
+      const stepFields = getStepFields()
+      
+      if (currentStep === 1) {
+        setCurrentStep(2)
+        return
+      }
+
+      if (stepFields.length > 0) {
+        const fieldNames = stepFields.map((field) => field.name)
+        await form.validateFields(fieldNames)
+        
+        const currentStepValues = form.getFieldsValue(fieldNames)
+        setFormValues((prev) => ({ ...prev, ...currentStepValues }))
+      }
+
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1)
       } else {
-        // Organization account type
-        if (field.name === 'email') {
-          return { ...field, label: "Contact Person's Email*" }
-        }
-        if (field.name === 'firstName') {
-          return { ...field, label: 'First Name*' }
-        }
-        if (field.name === 'lastName') {
-          return { ...field, label: 'Last Name*' }
-        }
-        // Show orgName and address for organization
-        if (field.name === 'orgName' || field.name === 'address') {
-          return { ...field, hidden: false }
-        }
+        await handleFormSubmit()
       }
-      return field
-    })
-  }, [accountType])
+    } catch (error) {
+      if (isValidationError(error)) return
+    }
+  }
+
+  const handleGoBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
 
   const handleFormSubmit = async () => {
     try {
       setIsSubmitting(true)
 
-      const data = await form.validateFields()
-
-      const { email, firstName, lastName, password, confirmPassword, orgName, address } = data
-
-      // Password validation is handled by form rules, but we keep this as a fallback
+      const stepFields = getStepFields()
+      const currentStepValues = stepFields.length > 0 
+        ? form.getFieldsValue(stepFields.map((field) => field.name))
+        : {}
+      
+      const allFormValues = { ...formValues, ...currentStepValues }
+      
+      const allFields = accountType === AccountType.INDIVIDUAL
+        ? ['firstName', 'lastName', 'email', 'password', 'confirmPassword']
+        : ['orgName', 'email', 'firstName', 'lastName', 'address', 'password', 'confirmPassword']
+      
+      form.setFieldsValue(allFormValues)
+      await form.validateFields(allFields)
+      
+      const email = allFormValues.email
+      const firstName = allFormValues.firstName
+      const lastName = allFormValues.lastName
+      const password = allFormValues.password
+      const confirmPassword = allFormValues.confirmPassword
+      const orgName = allFormValues.orgName
+      const address = allFormValues.address
 
       const response = await authService.signUp({
         type: accountType,
@@ -121,7 +260,6 @@ export const SignUp: React.FC = () => {
         type: 'success',
       })
 
-      // Redirect based on email verification status
       if (emailVerifiedAt) {
         router.replace(ROUTE.DASHBOARD)
       } else {
@@ -139,6 +277,61 @@ export const SignUp: React.FC = () => {
     }
   }
 
+  const handleAccountTypeChange = (value: string) => {
+    setAccountType(value)
+    form.resetFields(['orgName', 'address', 'firstName', 'lastName', 'email', 'password', 'confirmPassword'])
+    setFormValues({}) 
+    setCurrentStep(1) 
+  }
+
+  const renderStepContent = () => {
+    if (currentStep === 1) {
+      return (
+        <Box>
+          <Text>Sign up as</Text>
+          <Spacer value={10} />
+          <RadioGroup
+            onChange={(e) => handleAccountTypeChange(e.target.value)}
+            value={accountType}
+            style={{ width: '100%' }}
+          >
+            <OptionCard
+              $selected={accountType === 'individual'}
+              onClick={() => handleAccountTypeChange('individual')}
+            >
+              <Radio value="individual">
+                <span className="title">Individual</span>
+              </Radio>
+              <div className="subtitle">Create an account for individual use only</div>
+            </OptionCard>
+
+            <OptionCard
+              $selected={accountType === 'organization'}
+              onClick={() => handleAccountTypeChange('organization')}
+            >
+              <Radio value="organization">
+                <span className="title">Organization</span>
+              </Radio>
+              <div className="subtitle">Create an account for an organization</div>
+            </OptionCard>
+          </RadioGroup>
+        </Box>
+      )
+    }
+
+    const stepFields = getStepFields()
+    
+    return (
+      <DynamicForm
+        fields={stepFields}
+        form={form}
+        onSubmit={handleNext}
+        disabled={isSubmitting}
+        isLoading={false}
+      />
+    )
+  }
+
   return (
     <StyledContainer gutter={[0, 0]}>
       <Col span={12} xs={24} sm={24} md={24} lg={12}>
@@ -151,53 +344,63 @@ export const SignUp: React.FC = () => {
               <StyledTitle level={3}>Create an Account</StyledTitle>
             </StyledRow>
 
-            <Box>
-              <Text>Sign up as</Text>
-              <RadioGroup
-                onChange={(e) => {
-                  setAccountType(e.target.value)
-                  form.resetFields(['orgName', 'address'])
-                }}
-                value={accountType}
-                style={{ width: '100%' }}
+            <StyledProgressBarWrapper>
+              <Progress
+                percent={progressPercent}
+                showInfo={false}
+                strokeColor="black"
+                trailColor="#e5e5e5"
+                strokeWidth={4}
+              />
+            </StyledProgressBarWrapper>
+
+            <StyledStepText>
+              Step {currentStep} of {totalSteps}: {getStepTitle()}
+            </StyledStepText>
+
+            <StyledStepContentWrapper>{renderStepContent()}</StyledStepContentWrapper>
+
+            <StyledButtonWrapper>
+              {currentStep > 1 && (
+                <StyledGoBackButton onClick={handleGoBack} disabled={isSubmitting}>
+                  Go Back
+                </StyledGoBackButton>
+              )}
+              <StyledNextButton
+                type="primary"
+                onClick={handleNext}
+                disabled={isSubmitting}
+                loading={isSubmitting && currentStep === totalSteps}
               >
-                <OptionCard
-                  $selected={accountType === 'individual'}
-                  onClick={() => {
-                    setAccountType('individual')
-                    form.resetFields(['orgName', 'address'])
-                  }}
-                >
-                  <Radio value="individual">
-                    <span className="title">Individual</span>
-                  </Radio>
-                  <div className="subtitle">Create an account for individual use only</div>
-                </OptionCard>
+                {currentStep === totalSteps ? 'Create Account' : 'Next'}
+              </StyledNextButton>
+            </StyledButtonWrapper>
 
-                <OptionCard
-                  $selected={accountType === 'organization'}
-                  onClick={() => {
-                    setAccountType('organization')
-                    form.resetFields(['orgName', 'address'])
-                  }}
-                >
-                  <Radio value="organization">
-                    <span className="title">Organization</span>
-                  </Radio>
-                  <div className="subtitle">Create an account for an organization</div>
-                </OptionCard>
-              </RadioGroup>
-            </Box>
-
-            <Spacer value={20} />
-
-            <DynamicForm
-              fields={formFields}
-              form={form}
-              onSubmit={handleFormSubmit}
-              disabled={isSubmitting}
-              isLoading={isSubmitting}
-            />
+            <Spacer value={16} />
+            <StyledNavigationBox>
+              <DynamicForm
+                fields={[
+                  {
+                    align: 'center',
+                    href: ROUTE.AUTH.SIGN_IN,
+                    name: 'signUpLink',
+                    placeholder: '',
+                    rules: [
+                      {
+                        required: false,
+                      },
+                    ],
+                    title: 'Already have an account? ',
+                    linkText: 'Login here',
+                    type: EDynamicFormField.NAVIGATION,
+                  },
+                ]}
+                form={form}
+                onSubmit={() => {}}
+                disabled={false}
+                isLoading={false}
+              />
+            </StyledNavigationBox>
           </StyledLoginBox>
         </StyledFieldsCol>
       </Col>

@@ -65,6 +65,7 @@ export const StyledContent = styled((props: LayoutProps) => {
   }}
   background: ${(props) => props.theme.color.background};
   overflow: auto;
+  position: relative;
   ${boxProperties};
 
   @media only screen and (max-width: ${maxTablet}) {

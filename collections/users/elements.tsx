@@ -22,3 +22,28 @@ export const StyledTag = styled((props: TagProps) => <Tag {...props} />)`
   border: none;
   font-size: 14;
 `
+
+export const StyledFormInput = styled((props: InputProps) => <Input {...props} />)`
+  &&.ant-input {
+    height: 40px !important;
+  }
+    height: 40px !important;
+`
+
+export const StyledFormSelect = styled((props: SelectProps<any>) => <Select {...props} />)`
+  && {
+    .ant-select-selector {
+      height: 40px !important;
+      
+      .ant-select-selection-item,
+      .ant-select-selection-placeholder {
+        line-height: 38px !important;
+        height: 40px !important;
+      }
+    }
+  }
+  .ant-select-selection-placeholder {
+    line-height: 38px !important;
+    height: 40px !important;
+  }
+`

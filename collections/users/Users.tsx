@@ -59,7 +59,6 @@ export const Users = () => {
         setInvitations(response.data?.invitations || [])
       }
     } catch (error) {
-      // Handle error silently or show user-friendly message
     } finally {
       setLoading(false)
     }

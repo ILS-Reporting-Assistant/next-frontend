@@ -10,4 +10,12 @@ export const ROUTE = {
   ONBOARDING: '/onboarding',
   DASHBOARD: '/dashboard',
   ROOT: '/',
+  PROGRESS_REPORTS: '/progress-reports',
+  CREATE_PROGRESS_REPORTS: '/progress-reports/create-reports',
+  ACCOUNT_SETTING: '/account-setting',
+  CLIENTS: '/clients',
+  ASSESSMENT_REPORTS: '/assessment-reports',
+  CREATE_ASSESSMENT_REPORTS: '/assessment-reports/create-reports',
+  ISP_REVIEWS: '/isp-reviews',
+  CREATE_ISP_REVIEWS: '/isp-reviews/create-reports',
 }

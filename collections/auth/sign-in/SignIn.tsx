@@ -53,7 +53,6 @@ export const SignIn: React.FC = () => {
         )
       }
 
-      // Redirect based on email verification status
       if (emailVerifiedAt) {
         router.replace(ROUTE.DASHBOARD)
       } else {

@@ -9,4 +9,8 @@ export const StyledSiderMenu = styled((props: MenuProps) => <AntMenu {...props} 
   &&.ant-menu-dark .ant-menu-item-selected {
     background-color: #303030;
   }
+   &&.ant-menu-inline .ant-menu-item {
+    height: 50px !important;
+    line-height: 50px !important;
+  }
 `

@@ -1,8 +1,8 @@
-import { Card, Form, If, Row, Spacer, Title } from '@app/components'
+import { Card, Form, If, Spacer, Title } from '@app/components'
 import React, { useEffect } from 'react'
 
 import { DynamicInput } from './DynamicInput'
-import { StyledCol, StyledSpace } from './elements'
+import { StyledCol, StyledRow, StyledSpace } from './elements'
 import { IForm } from './types'
 
 export const DynamicForm: React.FC<IForm> = (props) => {
@@ -12,7 +12,7 @@ export const DynamicForm: React.FC<IForm> = (props) => {
 
   const getFormFields = (field, i) => {
     return (
-      <Row key={i}>
+      <StyledRow key={i}>
         <If condition={field.inline?.length}>
           {field.inline?.map((subField, j) => (
             <StyledCol key={j} textAlign={subField.align} sm={24} lg={24 / field.inline.length}>
@@ -37,7 +37,7 @@ export const DynamicForm: React.FC<IForm> = (props) => {
             />
           </StyledCol>
         </If>
-      </Row>
+      </StyledRow>
     )
   }
 

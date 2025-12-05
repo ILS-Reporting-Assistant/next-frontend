@@ -1,0 +1,39 @@
+import React from 'react'
+
+export const StarsAnimation: React.FC = () => {
+  return (
+    <svg
+      width="120"
+      height="120"
+      viewBox="0 0 120 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Large star - bottom right */}
+      <path
+        className="star-large"
+        d="M75 75L78 67.5L85.5 64.5L78 61.5L75 54L72 61.5L64.5 64.5L72 67.5L75 75Z"
+        stroke="#232323"
+        strokeWidth="2"
+        fill="none"
+      />
+      {/* Small star - top left */}
+      <path
+        className="star-small-1"
+        d="M45 37.5L46.5 33L51 31.5L46.5 30L45 25.5L43.5 30L39 31.5L43.5 33L45 37.5Z"
+        stroke="#232323"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      {/* Small star - bottom left */}
+      <path
+        className="star-small-2"
+        d="M42 82.5L43.5 78L48 76.5L43.5 75L42 70.5L40.5 75L36 76.5L40.5 78L42 82.5Z"
+        stroke="#232323"
+        strokeWidth="1.5"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
