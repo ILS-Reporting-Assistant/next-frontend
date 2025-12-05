@@ -60,7 +60,9 @@ function Main({ Component, pageProps }: AppProps) {
       ROUTE.AUTH.SIGN_UP,
       ROUTE.AUTH.FORGOT_PASSWORD,
       ROUTE.AUTH.VERIFY_ACCOUNT,
+      ROUTE.AUTH.INVITATION,
       ROUTE.ONBOARDING,
+      ROUTE.AUTH.RESET_PASSWORD,
     ].includes(route)
   }
 
@@ -69,13 +71,15 @@ function Main({ Component, pageProps }: AppProps) {
       ROUTE.AUTH.SIGN_IN,
       ROUTE.AUTH.SIGN_UP,
       ROUTE.AUTH.FORGOT_PASSWORD,
+      ROUTE.AUTH.RESET_PASSWORD,
       ROUTE.AUTH.VERIFY_ACCOUNT,
+      ROUTE.AUTH.INVITATION,
       ROUTE.ONBOARDING,
       ROUTE.ROOT,
     ].includes(route)
   }
 
-  const backgroundColor = { background: COLORS.secondary }
+  const backgroundColor = { background: COLORS.primary }
 
   const updateSidebar = (value) => {
     setIsCollapsed(value)

@@ -1,4 +1,4 @@
 import { InputPasswordProps } from '@app/types'
-import { Input as AntInput } from 'antd'
+import { StyledInputPassword } from './elements'
 
-export const InputPassword: React.FC<InputPasswordProps> = (props) => <AntInput.Password {...props} />
+export const InputPassword: React.FC<InputPasswordProps> = (props) => <StyledInputPassword {...props} />

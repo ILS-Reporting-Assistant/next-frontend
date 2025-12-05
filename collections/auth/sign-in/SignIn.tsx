@@ -1,13 +1,15 @@
 import { Col, Notification, Spacer, useForm } from '@app/components'
+import { ROUTE } from '@app/data'
 import { SIGN_IN_FORM } from '@app/forms'
 import { DynamicForm } from '@app/modules'
-import { login } from '@app/redux'
-import { ROUTE } from '@app/data'
+import { login, setCurrentOrganization } from '@app/redux'
 import { useRouter } from 'next/router'
-import { useDispatch } from 'react-redux'
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { CompanyLogo } from '~public'
+import { authService, extractErrorMessage } from '@app/services'
 import { StyledContainer, StyledFieldsCol, StyledLoginBox, StyledRightCol, StyledRow, StyledTitle } from './elements'
+import { isValidationError } from '@app/utils'
 
 export const SignIn: React.FC = () => {
   const [form] = useForm()
@@ -17,35 +19,51 @@ export const SignIn: React.FC = () => {
 
   const handleFormSubmit = async () => {
     try {
+      const values = await form.validateFields()
       setIsSubmitting(true)
 
-      const values = await form.validateFields()
       const { email, password } = values
 
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      if (!email || !password) {
-        throw new Error('Invalid credentials')
-      }
+      const response = await authService.login({ email, password })
+
+      const {
+        accessToken,
+        refreshToken,
+        user: { _id, emailAddress, firstName, lastName, type, emailVerifiedAt, role },
+        userOrganizations,
+      } = response.data
 
       dispatch(
         login({
-          accessToken: 'dev-token',
-          email,
-          uid: 'dev-uid',
+          accessToken,
+          refreshToken,
+          email: emailAddress,
+          uid: _id,
+          firstName,
+          lastName,
+          type,
+          emailVerifiedAt,
+          role,
         }),
       )
 
-      Notification({
-        message: 'Logged in',
-        description: 'Welcome back!',
-        type: 'success',
-      })
+      if (userOrganizations) {
+        dispatch(
+          setCurrentOrganization({ organizationId: userOrganizations.organizationId, role: userOrganizations.role }),
+        )
+      }
 
-      router.push(ROUTE.DASHBOARD)
-    } catch (error: any) {
+      // Redirect based on email verification status
+      if (emailVerifiedAt) {
+        router.replace(ROUTE.DASHBOARD)
+      } else {
+        router.replace(ROUTE.AUTH.VERIFY_ACCOUNT)
+      }
+    } catch (error) {
+      if (isValidationError(error)) return
       Notification({
-        message: 'Login failed',
-        description: error?.message || 'Please check your credentials and try again.',
+        message: 'Unable to login',
+        description: extractErrorMessage(error),
         type: 'error',
       })
     } finally {
@@ -64,9 +82,14 @@ export const SignIn: React.FC = () => {
             <StyledRow>
               <StyledTitle level={3}>Login</StyledTitle>
             </StyledRow>
-            <Spacer value={35} />
 
-            <DynamicForm fields={SIGN_IN_FORM} form={form} onSubmit={handleFormSubmit} disabled={isSubmitting} />
+            <DynamicForm
+              fields={SIGN_IN_FORM}
+              form={form}
+              onSubmit={handleFormSubmit}
+              disabled={isSubmitting}
+              isLoading={isSubmitting}
+            />
           </StyledLoginBox>
         </StyledFieldsCol>
       </Col>

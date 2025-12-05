@@ -19,7 +19,7 @@ import {
 import { DFImageCard } from './components/image-card'
 import { DynamicInputProps, EDynamicFormField } from './types'
 
-export const DynamicInput: React.FC<DynamicInputProps> = ({ field, onCancel, onSubmit, disabled }) => {
+export const DynamicInput: React.FC<DynamicInputProps> = ({ field, onCancel, onSubmit, disabled, isLoading }) => {
   switch (field.type as EDynamicFormField) {
     case EDynamicFormField.INPUT: {
       return <DFInput field={field} disabled={disabled} />
@@ -58,7 +58,7 @@ export const DynamicInput: React.FC<DynamicInputProps> = ({ field, onCancel, onS
       return <DFImageCard icon={field.icon} title={field.title} />
     }
     case EDynamicFormField.PRIMARY_BUTTON: {
-      return <DFPrimaryButton field={field} onSubmit={onSubmit} />
+      return <DFPrimaryButton field={field} onSubmit={onSubmit} isLoading={isLoading} />
     }
     case EDynamicFormField.DEFAULT_BUTTON: {
       return <DFDefaultButton field={field} onCancel={onCancel} />

@@ -5,7 +5,16 @@ import { ROUTE } from '../routes'
 
 export const SIGN_IN_FORM: IField[] = [
   {
-    label: 'Email',
+    align: 'center',
+    href: ROUTE.AUTH.SIGN_UP,
+    name: 'signUpLink',
+    rules: [{ required: false }],
+    title: "Don't have an account? ",
+    linkText: 'Sign up here',
+    type: EDynamicFormField.NAVIGATION,
+  },
+  {
+    label: 'Email*',
     name: 'email',
     placeholder: 'Enter Email',
     rules: [
@@ -17,7 +26,7 @@ export const SIGN_IN_FORM: IField[] = [
     type: EDynamicFormField.EMAIL,
   },
   {
-    label: 'Password',
+    label: 'Password*',
     name: 'password',
     placeholder: 'Enter Password',
     rules: [
@@ -55,14 +64,5 @@ export const SIGN_IN_FORM: IField[] = [
     ],
     title: 'Login',
     type: EDynamicFormField.PRIMARY_BUTTON,
-  },
-  {
-    align: 'center',
-    href: ROUTE.AUTH.SIGN_UP,
-    name: 'signUpLink',
-    rules: [{ required: false }],
-    title: "Don't have an account? ",
-    linkText: 'Sign up here',
-    type: EDynamicFormField.NAVIGATION,
   },
 ]

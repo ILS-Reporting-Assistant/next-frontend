@@ -54,14 +54,14 @@ export const ProfileMenu: React.FC = () => {
   ]
   return (
     <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-      <StyledButton type={'default'} style={{ backgroundColor: color.secondary }}>
+      <StyledButton type={'default'} style={{ backgroundColor: color.primary }}>
         <Space>
           {trigger.showBadge ? (
             <StyledBadge size="small" count={4}>
-              <Avatar style={{ backgroundColor: color.primary }} icon={<UserOutlined />} size={'small'} />
+              <Avatar style={{ backgroundColor: color.secondary }} icon={<UserOutlined />} size={'small'} />
             </StyledBadge>
           ) : (
-            <Avatar icon={<UserOutlined />} size={'small'} />
+            <Avatar icon={<UserOutlined />} size={'small'} style={{ backgroundColor: '#303030' }} />
           )}
           <StyledText>{user?.firstName || user?.email?.split('@')?.[0]}</StyledText>
           <DownOutlined style={{ color: color.white }} />

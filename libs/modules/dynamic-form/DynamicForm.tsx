@@ -21,13 +21,20 @@ export const DynamicForm: React.FC<IForm> = (props) => {
                 onCancel={props.onCancel}
                 onSubmit={props.onSubmit}
                 disabled={props.disabled}
+                isLoading={props?.isLoading}
               />
             </StyledCol>
           ))}
         </If>
         <If condition={!field.inline?.length}>
           <StyledCol span={24} textAlign={field.align}>
-            <DynamicInput field={field} onCancel={props.onCancel} onSubmit={props.onSubmit} disabled={props.disabled} />
+            <DynamicInput
+              field={field}
+              onCancel={props.onCancel}
+              onSubmit={props.onSubmit}
+              disabled={props.disabled}
+              isLoading={props?.isLoading}
+            />
           </StyledCol>
         </If>
       </Row>

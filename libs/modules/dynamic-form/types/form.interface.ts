@@ -11,6 +11,7 @@ export interface IForm {
 
   initialValues?: any
   disabled?: boolean // Disables whole form
+  isLoading?: boolean
 }
 export interface IField {
   component?: JSX.Element
@@ -47,6 +48,7 @@ export interface DynamicInputProps {
   disabled?: boolean
   onCancel?: (props?: any) => any | void
   onSubmit?: (props?: any, type?: string) => any | void
+  isLoading?: boolean
 }
 
 interface IHiddenField {

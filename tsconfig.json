@@ -37,6 +37,7 @@
       "@app/styles": ["libs/styles"],
       "@app/theme": ["libs/theme"],
       "@app/types": ["libs/types"],
+      "@app/enums": ["libs/enums"],
       "@app/utils": ["libs/utils"],
       "@app/forms": ["libs/data/forms"],
       "@app/modules": ["libs/modules"],
