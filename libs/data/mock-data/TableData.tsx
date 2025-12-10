@@ -4,12 +4,14 @@ export const ProgressReportsData = [
     name: 'Progress Report 11/25',
     date: '10/12/2025',
     createdBy: 'John',
+    client: 'Chris Wilson',
   },
   {
     key: '2',
     name: 'Progress Report 09/23',
     date: '09/23/2025',
     createdBy: 'Sarah',
+    client: 'John Smith',
   },
 ]
 
@@ -19,12 +21,14 @@ export const AssessmentReportsData = [
     name: 'Initial Assessment Report 11/25',
     date: '10/12/2025',
     createdBy: 'John',
+    client: 'Chris Wilson',
   },
   {
     key: '2',
     name: 'Initial Assessment Report 09/23',
     date: '09/23/2025',
     createdBy: 'Sarah',
+    client: 'John Smith',
   },
 ]
 
@@ -34,12 +38,14 @@ export const IspReviewsData = [
     name: 'Annual ISP Review 11/25',
     date: '10/12/2025',
     createdBy: 'John',
+    client: 'Chris Wilson',
   },
   {
     key: '2',
     name: 'Annual ISP Review 09/23',
     date: '09/23/2025',
     createdBy: 'Sarah',
+    client: 'John Smith',
   },
 ]
 

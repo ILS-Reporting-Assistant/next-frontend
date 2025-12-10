@@ -27,56 +27,22 @@ export const AccountSetting: React.FC = () => {
 
   return (
     <StyledContainer>
-      <StyledTitle >Account</StyledTitle>
+      <StyledTitle>Account</StyledTitle>
       <Spacer value={16} />
       <StyledTabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane
-          tab={
-            <StyledTabLabel>
-              <UserOutlined />
-              My Profile
-            </StyledTabLabel>
-          }
-          key="profile"
-        >
+        <TabPane tab={<StyledTabLabel>My Profile</StyledTabLabel>} icon={<UserOutlined />} key="profile">
           <MyProfileTab />
         </TabPane>
-        <TabPane
-          tab={
-            <StyledTabLabel>
-              <LockOutlined />
-              Change Password
-            </StyledTabLabel>
-          }
-          key="password"
-        >
+        {/* <TabPane tab={<StyledTabLabel>Change Password</StyledTabLabel>} icon={<LockOutlined />} key="password">
           <ChangePasswordTab />
-        </TabPane>
-        <TabPane
-          tab={
-            <StyledTabLabel>
-              <DollarOutlined />
-              Subscription Plans
-            </StyledTabLabel>
-          }
-          key="subscription"
-        >
+        </TabPane> */}
+        <TabPane tab={<StyledTabLabel>Subscription Plans</StyledTabLabel>} icon={<DollarOutlined />} key="subscription">
           <SubscriptionPlansTab />
         </TabPane>
-        <TabPane
-          tab={
-            <StyledTabLabel>
-              <CreditCardOutlined />
-              Payment Methods
-            </StyledTabLabel>
-          }
-          key="payment"
-        >
+        <TabPane tab={<StyledTabLabel>Payment Methods</StyledTabLabel>} icon={<CreditCardOutlined />} key="payment">
           <PaymentMethodsTab />
         </TabPane>
-        
       </StyledTabs>
     </StyledContainer>
   )
 }
-

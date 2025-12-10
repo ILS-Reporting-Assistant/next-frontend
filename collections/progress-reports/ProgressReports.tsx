@@ -1,17 +1,32 @@
-import { Box, Button, Dropdown, Icon, Spacer, Table, Title } from '@app/components'
+import { Box, Button, Dropdown, Icon, Select, Spacer, Table, Text, Title } from '@app/components'
 import React from 'react'
-import { StyledFlexContainer, StyledSearch } from './elements'
+import { StyledClientAvatar, StyledFlexContainer, StyledSearch } from './elements'
 import { ProgressReportsData, ROUTE } from '@app/data'
 import { useRouter } from 'next/router'
-
+import { useSelector } from 'react-redux'
+import { IStore } from '@app/redux'
 
 export const ProgressReports = () => {
   const router = useRouter()
+  const { color } = useSelector((state: IStore) => state)
   const columns = [
     {
       title: 'Report Name',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: 'Client Name',
+      dataIndex: 'client',
+      key: 'client',
+      render: (name, record) => (
+        <Box display="flex" alignItems="center">
+          <StyledClientAvatar $backgroundColor={color.primary} $textColor={color.white}>
+            {name ? name.charAt(0).toUpperCase() : 'A'}
+          </StyledClientAvatar>
+          <Text>{name}</Text>
+        </Box>
+      ),
     },
     {
       title: 'Date Created',
@@ -42,6 +57,10 @@ export const ProgressReports = () => {
     },
   ]
 
+  const onChange = (value: string) => {
+    // console.log(`selected ${value}`)
+  }
+
   return (
     <Box>
       <StyledFlexContainer>
@@ -49,7 +68,25 @@ export const ProgressReports = () => {
         <Button onClick={() => router.replace(ROUTE.CREATE_PROGRESS_REPORTS)}>Create New Report</Button>
       </StyledFlexContainer>
       <Spacer value={16} />
-      <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />
+      <Box display="flex">
+        <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />
+        <Select
+          marginLeft="16px"
+          showSearch
+          placeholder="Select a client"
+          onChange={onChange}
+          options={[
+            {
+              value: 'chris',
+              label: 'Chris Wilson',
+            },
+            {
+              value: 'john',
+              label: 'John Smith',
+            },
+          ]}
+        />
+      </Box>
       <Spacer value={24} />
       <Table columns={columns} dataSource={ProgressReportsData} bordered={false} />
     </Box>

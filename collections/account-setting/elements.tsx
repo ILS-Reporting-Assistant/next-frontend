@@ -3,11 +3,7 @@ import { maxMobile } from '@app/styles'
 import { BoxProps, TabsProps, TextProps } from '@app/types'
 import styled from 'styled-components'
 
-export const StyledTabLabel = styled((props: BoxProps) => <Box {...props} />)`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`
+export const StyledTabLabel = styled((props: BoxProps) => <Box {...props} />)``
 
 export const StyledContainer = styled((props: BoxProps) => <Box {...props} />)`
   width: 100%;
@@ -40,7 +36,6 @@ export const StyledTabs = styled((props: TabsProps) => <Tabs {...props} />)`
   .ant-tabs-tab-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
     color: inherit;
   }
 

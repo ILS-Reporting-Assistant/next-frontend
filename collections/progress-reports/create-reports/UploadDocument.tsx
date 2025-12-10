@@ -1,4 +1,4 @@
-import { Box, Icon, ReactQuill, Text, Title, Upload } from '@app/components'
+import { Box, Icon, ReactQuill, Upload } from '@app/components'
 import React, { useState } from 'react'
 import { UploadFile } from '@app/types'
 import 'react-quill/dist/quill.snow.css'
@@ -64,46 +64,50 @@ export const UploadDocument = () => {
         </StyledStep3Description>
 
         <Box>
-          <StyledDailyNotesHeading>Daily Notes & Observations</StyledDailyNotesHeading>
-          <StyledEditorWrapper>
-            <ReactQuill
-              theme="snow"
-              value={editorContent}
-              onChange={setEditorContent}
-              placeholder="Paste your daily notes, shift summaries, or observations here. Don't worry about formatting - I'll organize everything by skill area and create a professional narrative."
-              modules={{
-                toolbar: [
-                  [{ header: [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ color: [] }, { background: [] }],
-                  [{ align: [] }],
-                  ['link', 'image', 'video'],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  ['code-block'],
-                  // ['clean']
-                ],
-              }}
-              formats={[
-                'header',
-                'bold',
-                'italic',
-                'underline',
-                'strike',
-                'color',
-                'background',
-                'align',
-                'link',
-                'image',
-                'video',
-                'list',
-                'bullet',
-                'code-block',
-              ]}
-            />
-          </StyledEditorWrapper>
-          <StyledOrDivider>
-            <StyledOrText>Or</StyledOrText>
-          </StyledOrDivider>
+          {!uploadedFile && (
+            <>
+              <StyledDailyNotesHeading>Daily Notes & Observations</StyledDailyNotesHeading>
+              <StyledEditorWrapper>
+                <ReactQuill
+                  theme="snow"
+                  value={editorContent}
+                  onChange={setEditorContent}
+                  placeholder="Paste your daily notes, shift summaries, or observations here. Don't worry about formatting - I'll organize everything by skill area and create a professional narrative."
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ color: [] }, { background: [] }],
+                      [{ align: [] }],
+                      ['link', 'image', 'video'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['code-block'],
+                      // ['clean']
+                    ],
+                  }}
+                  formats={[
+                    'header',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strike',
+                    'color',
+                    'background',
+                    'align',
+                    'link',
+                    'image',
+                    'video',
+                    'list',
+                    'bullet',
+                    'code-block',
+                  ]}
+                />
+              </StyledEditorWrapper>
+              <StyledOrDivider>
+                <StyledOrText>Or</StyledOrText>
+              </StyledOrDivider>
+            </>
+          )}
 
           <StyledUploadWrapper>
             <Upload

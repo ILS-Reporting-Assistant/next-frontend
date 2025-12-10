@@ -5,9 +5,15 @@ import {
   StyledComplianceDescription,
   StyledComplianceDescriptionWithPadding,
   StyledComplianceList,
+  StyledSkillsLabel,
+  StyledSkillsSelect,
 } from './elements'
 
 export const ComplianceNotice = () => {
+  const onChange = (value: string) => {
+    // console.log(`selected ${value}`)
+  }
+
   return (
     <>
       <Spacer value={4} />
@@ -15,7 +21,8 @@ export const ComplianceNotice = () => {
       <StyledComplianceHeading level={3}>Let's Keep Everything Safe & Compliant</StyledComplianceHeading>
 
       <StyledComplianceDescription>
-        Our system automatically reviews your entry and removes or replaces protected information to help keep your data de-identified and secure.
+        Our system automatically reviews your entry and removes or replaces protected information to help keep your data
+        de-identified and secure.
       </StyledComplianceDescription>
 
       <StyledComplianceDescriptionWithPadding>
@@ -33,7 +40,23 @@ export const ComplianceNotice = () => {
         ]}
         renderItem={(item: string) => <ListItem>{item}</ListItem>}
       />
+      <Spacer value={32} />
+      <StyledSkillsLabel>Select a client</StyledSkillsLabel>
+      <StyledSkillsSelect
+        showSearch
+        placeholder="Select a client"
+        onChange={onChange}
+        options={[
+          {
+            value: 'chris',
+            label: 'Chris Wilson',
+          },
+          {
+            value: 'john',
+            label: 'John Smith',
+          },
+        ]}
+      />
     </>
   )
 }
-

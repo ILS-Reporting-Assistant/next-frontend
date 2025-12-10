@@ -9,8 +9,7 @@ export const StyledTabContent = styled((props: BoxProps) => <Box {...props} />)`
 export const StyledSectionTitle = styled((props: TextProps) => <Text {...props} />)`
   margin-bottom: 0 !important;
   font-weight: 500;
-  font-size: 22px;
-  line-height: 100%;
+  font-size: 16px;
 `
 
 export const StyledSectionSubTitle = styled((props: TextProps) => <Text {...props} />)`
@@ -28,4 +27,3 @@ export const StyledDivider = styled((props: BoxProps) => <Box {...props} />)`
   margin-top: 12px !important;
   margin-bottom: 28px;
 `
-
