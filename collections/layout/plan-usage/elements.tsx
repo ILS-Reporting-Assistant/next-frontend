@@ -1,18 +1,17 @@
-import { ButtonProps, PlanUsageProps, BoxProps, TextProps,TagProps } from '@app/types'
+import { ButtonProps, PlanUsageProps, BoxProps, TextProps } from '@app/types'
 import { Button, Box, Text, Tag } from '@app/components'
 import styled from 'styled-components'
 
-export const StyledPlanUsageContainer = styled((props: BoxProps & PlanUsageProps) => <Box {...props} />)<PlanUsageProps>`
-  padding-top: 12px;
-  padding-bottom: 14px;
-  margin: 0 24px;
+export const StyledPlanUsageContainer = styled((props: BoxProps & PlanUsageProps) => (
+  <Box {...props} />
+))<PlanUsageProps>`
+  width: 250px;
   border-top: 1px solid #fff;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
-  right: 0;
-  margin-bottom: 20px;
-  // background: ${(props) => props.theme.color.secondary};
+  padding: 12px 24px 16px 24px;
+  background: ${(props) => props.theme.color.primary};
 `
 
 export const StyledPlanHeader = styled((props: BoxProps) => <Box {...props} />)`
@@ -26,7 +25,7 @@ export const StyledPlanHeader = styled((props: BoxProps) => <Box {...props} />)`
 export const StyledPlanTitle = styled((props: BoxProps) => <Box {...props} />)`
   display: flex;
   align-items: center;
-  gap:4px;
+  gap: 4px;
   font-size: 14px;
   font-weight: 500;
   color: #fff;
@@ -44,7 +43,7 @@ export const StyledRefreshIcon = styled((props: BoxProps) => <Box {...props} />)
 `
 
 export const StyledReportsUsed = styled((props: TextProps) => <Text {...props} />)`
-padding-left: 4px;
+  padding-left: 4px;
   font-size: 14px;
   font-weight: 500;
   color: #fff;
@@ -72,9 +71,9 @@ export const StyledResetInfo = styled((props: BoxProps) => <Box {...props} />)`
 `
 
 export const StyledActiveChip = styled((props: TextProps) => <Text {...props} />)`
-  background: #477E2C;
+  background: #477e2c;
   padding: 0px 6px;
-   color: #477e2c;
+  color: #477e2c;
   // padding: 0px 6px;
   height: 17px;
   font-size: 10px;
@@ -118,7 +117,7 @@ export const StyledViewAllButtonContainer = styled((props: BoxProps) => <Box {..
 
 export const StyledCrownIcon = styled((props: TextProps) => <Text {...props} />)`
   margin-right: 4px;
-  margin-bottom:2px;
+  margin-bottom: 2px;
   color: #fff;
   font-size: 16px;
 `

@@ -154,7 +154,7 @@ function Main({ Component, pageProps }: AppProps) {
                     mode={'inline'}
                     defaultSelectedKeys={[router.route.slice(1)]}
                     items={SIDEBAR_MENU_ITEMS()}
-                    style={{ ...backgroundColor, paddingBottom: '200px' }}
+                    style={{ ...backgroundColor }}
                   />
                   <PlanUsage isCollapsed={isCollapsed} />
                 </Sider>

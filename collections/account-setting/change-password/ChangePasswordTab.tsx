@@ -1,10 +1,7 @@
 import { Box, Col, Form, InputPassword, Notification, Row, Spacer, useForm } from '@app/components'
 import React, { useState } from 'react'
-import {
-  StyledFormItem,
-  StyledUpdatePasswordButton,
-} from './elements'
-import { StyledTabContent, StyledSectionTitle, StyledSectionSubTitle, StyledDivider } from '../shared'
+import { StyledFormItem, StyledUpdatePasswordButton } from './elements'
+import { StyledTabContent, StyledSectionTitle } from '../shared'
 
 export const ChangePasswordTab: React.FC = () => {
   const [form] = useForm()
@@ -20,7 +17,7 @@ export const ChangePasswordTab: React.FC = () => {
         description: 'Your password has been updated successfully.',
         type: 'success',
       })
-      
+
       form.resetFields()
     } catch (error) {
       Notification({
@@ -35,8 +32,13 @@ export const ChangePasswordTab: React.FC = () => {
 
   return (
     <StyledTabContent>
-      <StyledSectionTitle>Change Password</StyledSectionTitle>
-      <Spacer value={32} />
+      <Box display="flex" justifyContent="space-between">
+        <StyledSectionTitle>Change Password</StyledSectionTitle>
+        <StyledUpdatePasswordButton type="primary" onClick={handleUpdatePassword} loading={isSubmitting}>
+          Update password
+        </StyledUpdatePasswordButton>
+      </Box>
+      <Spacer value={16} />
       <Form form={form} layout="vertical">
         <Row gutter={[14, 0]}>
           <Col span={12}>
@@ -48,10 +50,9 @@ export const ChangePasswordTab: React.FC = () => {
               <InputPassword placeholder="Enter old password" />
             </StyledFormItem>
           </Col>
-          
         </Row>
         <Row gutter={[14, 0]}>
-        <Col span={12}>
+          <Col span={12}>
             <StyledFormItem
               label="New Password"
               name="newPassword"
@@ -86,11 +87,7 @@ export const ChangePasswordTab: React.FC = () => {
             </StyledFormItem>
           </Col>
         </Row>
-          <StyledUpdatePasswordButton type="primary" onClick={handleUpdatePassword} loading={isSubmitting}>
-            Update password
-          </StyledUpdatePasswordButton>
       </Form>
     </StyledTabContent>
   )
 }
-

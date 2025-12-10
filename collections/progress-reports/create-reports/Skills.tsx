@@ -17,7 +17,10 @@ import {
 } from './elements'
 
 export const Skills = () => {
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(['Home and Community Safety', 'Use of medical services'])
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([
+    'Home and Community Safety',
+    'Use of medical services',
+  ])
 
   const handleSelectSkill = (value: string) => {
     if (!selectedSkills.includes(value)) {
@@ -44,7 +47,7 @@ export const Skills = () => {
       </StyledStep2Description>
 
       <Box>
-        <StyledSkillsLabel>
+        {/* <StyledSkillsLabel>
           <StyledSkillsIcon>
             <Icon.AppstoreOutlined />
           </StyledSkillsIcon>
@@ -66,15 +69,12 @@ export const Skills = () => {
                 {skill}
               </Option>
             ))}
-        </StyledSkillsSelect>
+        </StyledSkillsSelect> */}
 
         <StyledPopularSkillsLabel>Popular Skills</StyledPopularSkillsLabel>
         <StyledPopularSkillsContainer>
           {popularSkills.map((skill) => (
-            <StyledPopularSkillTag
-              key={skill}
-              onClick={() => handlePopularSkillClick(skill)}
-            >
+            <StyledPopularSkillTag key={skill} onClick={() => handlePopularSkillClick(skill)}>
               {skill}
             </StyledPopularSkillTag>
           ))}
@@ -82,16 +82,10 @@ export const Skills = () => {
 
         {selectedSkills.length > 0 && (
           <StyledSelectedSkillsContainer>
-            <StyledSelectedSkillsLabel>
-              Selected Skills ({selectedSkills.length})
-            </StyledSelectedSkillsLabel>
+            <StyledSelectedSkillsLabel>Selected Skills ({selectedSkills.length})</StyledSelectedSkillsLabel>
             <StyledSelectedSkillsList>
               {selectedSkills.map((skill) => (
-                <StyledSelectedSkillTag
-                  key={skill}
-                  closable
-                  onClose={() => handleRemoveSkill(skill)}
-                >
+                <StyledSelectedSkillTag key={skill} closable onClose={() => handleRemoveSkill(skill)}>
                   {skill}
                 </StyledSelectedSkillTag>
               ))}
@@ -102,4 +96,3 @@ export const Skills = () => {
     </>
   )
 }
-

@@ -15,6 +15,7 @@ export interface DashboardCardData {
   description: string
   buttonText: string
   disable?: boolean
+  buttonClick?: string
 }
 
 export interface DashboardStyledBoxProps extends BoxProps {

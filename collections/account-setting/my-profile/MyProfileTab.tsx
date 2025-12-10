@@ -1,14 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons'
-import {
-  Box,
-  Col,
-  Form,
-  Input,
-  Notification,
-  Row,
-  Spacer,
-  useForm
-} from '@app/components'
+import { Box, Col, Form, Input, Notification, Row, Spacer, useForm } from '@app/components'
 import { IStore } from '@app/redux'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -26,11 +17,12 @@ import {
   StyledSaveButton,
 } from './elements'
 import { StyledTabContent, StyledSectionTitle, StyledSectionSubTitle, StyledDivider } from '../shared'
+import { ChangePasswordTab } from '../change-password'
 
 export const MyProfileTab: React.FC = () => {
   const { user } = useSelector((state: IStore) => state)
   const [form] = useForm()
-  const [isEditing, setIsEditing] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = async () => {
     try {
@@ -65,13 +57,17 @@ export const MyProfileTab: React.FC = () => {
     <StyledTabContent>
       <StyledPageHeader>
         <StyledSectionTitle>My Profile</StyledSectionTitle>
-        {isEditing && (
+        {isEditing ? (
           <StyledButtonGroup>
             <StyledCancelButton onClick={handleCancel}>Cancel</StyledCancelButton>
             <StyledSaveButton type="primary" onClick={handleSave}>
               Save Changes
             </StyledSaveButton>
           </StyledButtonGroup>
+        ) : (
+          <StyledSaveButton type="primary" onClick={() => setIsEditing(true)}>
+            Edit Profile
+          </StyledSaveButton>
         )}
       </StyledPageHeader>
       <Spacer value={27} />
@@ -109,6 +105,13 @@ export const MyProfileTab: React.FC = () => {
         </Form>
       </StyledProfileSection>
       <Spacer value={32} />
+      <StyledProfileSection>
+        <StyledSectionSubTitle>Change Password</StyledSectionSubTitle>
+        <StyledDivider />
+        <Spacer value={16} />
+        <ChangePasswordTab />
+      </StyledProfileSection>
+      <Spacer value={32} />
       <StyledAccountDeletionSection>
         <StyledSectionSubTitle>Account Deletion</StyledSectionSubTitle>
         <StyledDivider />
@@ -127,4 +130,3 @@ export const MyProfileTab: React.FC = () => {
     </StyledTabContent>
   )
 }
-

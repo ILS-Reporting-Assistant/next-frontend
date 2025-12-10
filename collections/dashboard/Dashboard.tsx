@@ -1,8 +1,24 @@
 import { Box, Col, Icon, Row, Spacer } from '@app/components'
 import { DashboardCardData } from '@app/types'
-import { Label, StyledBox, StyledButton, StyledButtonWrapper, StyledCardContent, StyledCardIcon, StyledCardText, StyledRibbon, StyledRibbonIcon, StyledRibbonText, StyledRow, StyledText, StyledWelcomeTitle } from './elements'
+import {
+  Label,
+  StyledBox,
+  StyledButton,
+  StyledButtonWrapper,
+  StyledCardContent,
+  StyledCardIcon,
+  StyledCardText,
+  StyledRibbon,
+  StyledRibbonIcon,
+  StyledRibbonText,
+  StyledRow,
+  StyledText,
+  StyledWelcomeTitle,
+} from './elements'
+import { useRouter } from 'next/router'
 
 export const Dashboard = () => {
+  const router = useRouter()
   const cardsData: DashboardCardData[] = [
     {
       icon: (
@@ -13,6 +29,7 @@ export const Dashboard = () => {
       title: 'Initial Assessment Report',
       description: 'New client intake and initial service planning.',
       buttonText: 'Create New Report',
+      buttonClick: '/assessment-reports',
     },
     {
       icon: (
@@ -23,6 +40,7 @@ export const Dashboard = () => {
       title: 'Progress Report',
       description: 'Ongoing service update including growth, goals, and support needs.',
       buttonText: 'Create New Report',
+      buttonClick: '/progress-reports',
     },
     {
       icon: (
@@ -33,6 +51,7 @@ export const Dashboard = () => {
       title: 'Annual ISP Review',
       description: 'Comprehensive yearly assessment and planning.',
       buttonText: 'Create New Report',
+      buttonClick: '/isp-reviews',
     },
     {
       icon: (
@@ -44,6 +63,7 @@ export const Dashboard = () => {
       description: 'Flexible reporting for special circumstances.',
       buttonText: 'Create New Report',
       disable: true,
+      buttonClick: '',
     },
   ]
 
@@ -60,7 +80,9 @@ export const Dashboard = () => {
               <Label>{card.description}</Label>
             </StyledCardContent>
             <StyledButtonWrapper>
-              <StyledButton disabled={card?.disable}>{card.buttonText}</StyledButton>
+              <StyledButton disabled={card?.disable} onClick={() => router.push(card?.buttonClick)}>
+                {card.buttonText}
+              </StyledButton>
             </StyledButtonWrapper>
           </Col>
         </Row>
