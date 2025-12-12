@@ -1,3 +1,6 @@
+import { ReportType } from '../../enums'
+import { Client } from '../api/clients'
+
 export interface CreateReportsProps {
   title: string
   backRoute: string
@@ -9,3 +12,57 @@ export interface CreateReportsProps {
   }
 }
 
+export interface GenerateAssessmentReportResponse {
+  originalContent: string
+  content: string
+  fileId?: string
+}
+
+export interface SaveReportPayload {
+  organizationId?: string
+  clientId: string
+  reportType: ReportType
+  reportName: string
+  fileId?: string
+  originalContent: string
+  content: string
+  skills?: string[]
+}
+
+export interface SaveReportResponse {
+  _id: string
+  userId: string
+  organizationId?: string | null
+  clientId: string
+  reportType: string
+  reportName: string
+  fileId?: string
+  originalContent: string
+  content: string
+  skills?: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ComplianceNoticeProps {
+  clients?: Client[]
+  clientsLoading?: boolean
+  selectedClient?: Client | null
+  onClientChange?: (client: Client | null) => void
+}
+
+export interface ReviewReviceProps {
+  onGoBack?: () => void
+  defaultReportName?: string
+  defaultReportContent?: string
+  originalContent?: string
+  onReportNameChange?: (name: string) => void
+  onReportContentChange?: (content: string) => void
+  onSaveReport?: () => Promise<void>
+  isSaving?: boolean
+}
+
+export interface SkillsProps {
+  selectedSkills?: string[]
+  onSkillsChange?: (skills: string[]) => void
+}

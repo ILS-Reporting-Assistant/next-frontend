@@ -1,17 +1,35 @@
-import { Spacer, ListItem } from '@app/components'
-import React from 'react'
+import { ListItem, Spacer } from '@app/components'
+import { ComplianceNoticeProps } from '@app/types'
 import {
-  StyledComplianceHeading,
   StyledComplianceDescription,
   StyledComplianceDescriptionWithPadding,
+  StyledComplianceHeading,
   StyledComplianceList,
   StyledSkillsLabel,
   StyledSkillsSelect,
 } from './elements'
 
-export const ComplianceNotice = () => {
-  const onChange = (value: string) => {
-    // console.log(`selected ${value}`)
+export const ComplianceNotice = ({
+  clients = [],
+  clientsLoading = false,
+  selectedClient,
+  onClientChange,
+}: ComplianceNoticeProps) => {
+  const getClientName = (client: any) => {
+    return `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Unknown'
+  }
+
+  const clientOptions = clients.map((client) => ({
+    value: client._id,
+    label: getClientName(client),
+    client: client,
+  }))
+
+  const handleChange = (value: string) => {
+    const client = clients.find((c) => c._id === value)
+    if (onClientChange && client) {
+      onClientChange(client)
+    }
   }
 
   return (
@@ -44,18 +62,15 @@ export const ComplianceNotice = () => {
       <StyledSkillsLabel>Select a client</StyledSkillsLabel>
       <StyledSkillsSelect
         showSearch
-        placeholder="Select a client"
-        onChange={onChange}
-        options={[
-          {
-            value: 'chris',
-            label: 'Chris Wilson',
-          },
-          {
-            value: 'john',
-            label: 'John Smith',
-          },
-        ]}
+        placeholder={clientsLoading ? 'Loading clients...' : 'Select a client'}
+        onChange={handleChange}
+        value={selectedClient?._id}
+        loading={clientsLoading}
+        options={clientOptions}
+        filterOption={(input, option) => {
+          const label = String(option?.label ?? '')
+          return label.toLowerCase().includes(input.toLowerCase())
+        }}
       />
     </>
   )

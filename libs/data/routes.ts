@@ -16,6 +16,7 @@ export const ROUTE = {
   CLIENTS: '/clients',
   ASSESSMENT_REPORTS: '/assessment-reports',
   CREATE_ASSESSMENT_REPORTS: '/assessment-reports/create-reports',
+  VIEW_ASSESSMENT_REPORT: '/assessment-reports/view',
   ISP_REVIEWS: '/isp-reviews',
   CREATE_ISP_REVIEWS: '/isp-reviews/create-reports',
 }
