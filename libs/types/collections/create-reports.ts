@@ -60,6 +60,7 @@ export interface ReviewReviceProps {
   onReportContentChange?: (content: string) => void
   onSaveReport?: () => Promise<void>
   isSaving?: boolean
+  reportType?: ReportType
 }
 
 export interface SkillsProps {

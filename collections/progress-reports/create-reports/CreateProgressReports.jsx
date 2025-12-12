@@ -275,6 +275,7 @@ export const CreateProgressReports = () => {
             onSaveReport={handleSaveReport}
             isSaving={isSaving}
             originalContent={originalContent}
+            reportType={ReportType.PROGRESS}
           />
         )
       default:

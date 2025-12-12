@@ -20,4 +20,5 @@ export const ROUTE = {
   VIEW_ASSESSMENT_REPORT: '/assessment-reports/view',
   ISP_REVIEWS: '/isp-reviews',
   CREATE_ISP_REVIEWS: '/isp-reviews/create-reports',
+  VIEW_ISP_REVIEW: '/isp-reviews/view',
 }

@@ -75,6 +75,39 @@ export const reportService = {
     )
     return data.data
   },
+  async uploadIspDocument(
+    file?: File,
+    organizationId?: string,
+    selectedSkills?: string[],
+    clientId?: string,
+    notes?: string,
+  ): Promise<GenerateAssessmentReportResponse> {
+    const formData = new FormData()
+
+    // Add file only if provided
+    if (file) {
+      formData.append('file', file)
+    }
+
+    if (organizationId) {
+      formData.append('organizationId', organizationId)
+    }
+    if (selectedSkills && selectedSkills.length > 0) {
+      formData.append('selectedSkills', JSON.stringify(selectedSkills))
+    }
+    if (clientId) {
+      formData.append('clientId', clientId)
+    }
+    if (notes) {
+      formData.append('notes', notes)
+    }
+
+    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
+      ENDPOINT.REPORTS.GENERATE_ISP_REPORT,
+      formData,
+    )
+    return data.data
+  },
   async generateDocument(content: string): Promise<Blob> {
     const response = await httpClient.post<Blob>(
       ENDPOINT.REPORTS.GENERATE_DOC,
