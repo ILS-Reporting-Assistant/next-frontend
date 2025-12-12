@@ -12,6 +12,7 @@ export const ROUTE = {
   ROOT: '/',
   PROGRESS_REPORTS: '/progress-reports',
   CREATE_PROGRESS_REPORTS: '/progress-reports/create-reports',
+  VIEW_PROGRESS_REPORT: '/progress-reports/view',
   ACCOUNT_SETTING: '/account-setting',
   CLIENTS: '/clients',
   ASSESSMENT_REPORTS: '/assessment-reports',
@@ -19,4 +20,5 @@ export const ROUTE = {
   VIEW_ASSESSMENT_REPORT: '/assessment-reports/view',
   ISP_REVIEWS: '/isp-reviews',
   CREATE_ISP_REVIEWS: '/isp-reviews/create-reports',
+  VIEW_ISP_REVIEW: '/isp-reviews/view',
 }

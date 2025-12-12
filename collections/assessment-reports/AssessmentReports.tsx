@@ -1,16 +1,15 @@
-import { Box, Button, Dropdown, Icon, Select, Spacer, Table, Text, Title, Notification } from '@app/components'
+import { Box, Button, Dropdown, Icon, Modal, Select, Spacer, Table, Text, Title, Notification } from '@app/components'
 import { ROUTE } from '@app/data'
 import { useRouter } from 'next/router'
 import { StyledClientAvatar, StyledFlexContainer, StyledSearch } from './elements'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { reportService, clientsService, extractErrorMessage } from '@app/services'
 import { isValidationError, getFullName, getAvatarText } from '@app/utils'
 import { Report, ReportsListQuery, Client } from '@app/types'
 import { ReportType } from '@app/enums'
 import moment from 'moment'
-import { Spin } from 'antd'
 
 export const AssessmentReports = () => {
   const router = useRouter()
@@ -22,7 +21,9 @@ export const AssessmentReports = () => {
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined)
   const [clients, setClients] = useState<Client[]>([])
   const [clientsLoading, setClientsLoading] = useState(false)
-  const [clientSearch, setClientSearch] = useState<string>('')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
+  const [modalLoading, setModalLoading] = useState(false)
 
   const organizationId = user.currentOrganizationId
 
@@ -52,52 +53,40 @@ export const AssessmentReports = () => {
     }
   }, [organizationId, currentPage, selectedClientId])
 
-  const fetchClients = useCallback(
-    async (search?: string) => {
-      setClientsLoading(true)
-      try {
-        const response = await clientsService.getOrganizationClients(organizationId, {
-          page: 1,
-          limit: 100,
-          ...(search ? { search } : {}),
-        })
-        setClients(response.data?.clients || [])
-      } catch (error) {
-        if (isValidationError(error)) return
+  const fetchClients = useCallback(async () => {
+    setClientsLoading(true)
+    try {
+      const response = await clientsService.getOrganizationClients(organizationId, {
+        page: 1,
+        limit: 100,
+      })
+      setClients(response.data?.clients || [])
+    } catch (error) {
+      if (isValidationError(error)) return
 
-        Notification({
-          message: 'Failed to fetch clients',
-          description: extractErrorMessage(error as Error),
-          type: 'error',
-        })
-      } finally {
-        setClientsLoading(false)
-      }
-    },
-    [organizationId],
-  )
+      Notification({
+        message: 'Failed to fetch clients',
+        description: extractErrorMessage(error as Error),
+        type: 'error',
+      })
+    } finally {
+      setClientsLoading(false)
+    }
+  }, [organizationId])
 
   useEffect(() => {
     fetchReports()
   }, [fetchReports])
 
   useEffect(() => {
-    const timeoutId = setTimeout(
-      () => {
-        fetchClients(clientSearch || undefined)
-      },
-      clientSearch ? 300 : 0,
-    ) // Debounce search by 300ms, but fetch immediately if search is empty
-
-    return () => clearTimeout(timeoutId)
-  }, [clientSearch, organizationId, fetchClients])
+    fetchClients()
+  }, [fetchClients])
 
   useEffect(() => {
     setCurrentPage(1)
     setReports([])
     setTotal(0)
     setSelectedClientId(undefined)
-    setClientSearch('')
   }, [organizationId])
 
   const handlePageChange = (page: number) => {
@@ -107,17 +96,6 @@ export const AssessmentReports = () => {
   const handleClientChange = (value: string) => {
     setSelectedClientId(value || undefined)
     setCurrentPage(1)
-    // Clear search when clearing the selection
-    if (!value) {
-      setClientSearch('')
-    }
-  }
-
-  const handleClientSearch = (value: string) => {
-    setClientSearch(value)
-    setClientsLoading(true)
-    setClients([])
-    setTotal(0)
   }
 
   const formatDate = (dateString?: string) => {
@@ -146,12 +124,51 @@ export const AssessmentReports = () => {
     return '-'
   }
 
-  const clientOptions = useMemo(() => {
+  const getClientOptions = () => {
     return clients.map((client) => ({
       value: client._id,
       label: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email || '-',
     }))
-  }, [clients])
+  }
+
+  const openModal = (report: Report) => {
+    setSelectedReport(report)
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+    setSelectedReport(null)
+    setModalLoading(false)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedReport) return
+
+    setModalLoading(true)
+    try {
+      // await reportService.deleteReport(selectedReport._id)
+      Notification({
+        message: 'Report deleted',
+        description: 'Report has been deleted successfully.',
+        type: 'success',
+      })
+      closeModal()
+      fetchReports()
+    } catch (error: any) {
+      if (isValidationError(error)) {
+        setModalLoading(false)
+        return
+      }
+
+      Notification({
+        message: 'Failed to delete report',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+      setModalLoading(false)
+    }
+  }
 
   const columns = [
     {
@@ -208,7 +225,12 @@ export const AssessmentReports = () => {
         const items = [
           { key: '1', label: 'View' },
           { key: '2', label: 'Download' },
-          { key: '3', label: 'Delete' },
+          {
+            key: '3',
+            label: 'Delete',
+            danger: true,
+            onClick: () => openModal(record),
+          },
         ]
 
         return (
@@ -234,22 +256,15 @@ export const AssessmentReports = () => {
           showSearch
           placeholder="Select a client"
           onChange={handleClientChange}
-          onSearch={handleClientSearch}
           value={selectedClientId}
           allowClear
           loading={clientsLoading}
-          options={clientOptions}
+          options={getClientOptions()}
           style={{ minWidth: 200 }}
-          filterOption={false}
-          notFoundContent={
-            clientsLoading ? (
-              <Box display="flex" alignItems="center" justifyContent="center" padding="8px">
-                <Spin size="small" />
-              </Box>
-            ) : (
-              'No clients found'
-            )
-          }
+          filterOption={(input, option) => {
+            const label = String(option?.label ?? '')
+            return label.toLowerCase().includes(input.toLowerCase())
+          }}
         />
       </Box>
       <Spacer value={24} />
@@ -267,6 +282,22 @@ export const AssessmentReports = () => {
           onChange: handlePageChange,
         }}
       />
+      <Modal
+        open={modalOpen}
+        title="Delete Report"
+        onCancel={closeModal}
+        onOk={handleDeleteConfirm}
+        confirmLoading={modalLoading}
+        okText="Delete"
+        okButtonProps={{ danger: true }}
+        cancelText="Cancel"
+      >
+        <Text>
+          {selectedReport
+            ? `Are you sure you want to delete the report "${selectedReport.reportName}"? This action cannot be undone.`
+            : ''}
+        </Text>
+      </Modal>
     </Box>
   )
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { extractErrorMessage } from '../../../libs/services/auth'
 import { reportService } from '../../../libs/services/report'
 import { ReviewReviceProps } from '@app/types'
+import { ReportType } from '@app/enums'
 import {
   StyledAIRevisionsHeading,
   StyledAIRevisionsInput,
@@ -45,6 +46,7 @@ export const ReviewRevice = ({
   onReportContentChange,
   onSaveReport,
   isSaving = false,
+  reportType = ReportType.PROGRESS,
 }: ReviewReviceProps) => {
   const [reportName, setReportName] = useState(defaultReportName)
   const [reportContent, setReportContent] = useState(defaultReportContent)
@@ -87,7 +89,12 @@ export const ReviewRevice = ({
 
     setIsRequestingRevision(true)
     try {
-      const result = await reportService.requestAIRevision(contentToUseAsOriginal, reportContent, revisionRequest)
+      const result = await reportService.requestAIRevision(
+        contentToUseAsOriginal,
+        reportContent,
+        revisionRequest,
+        reportType,
+      )
 
       const revisedContent = result.revisedContent || reportContent
       setReportContent(revisedContent)

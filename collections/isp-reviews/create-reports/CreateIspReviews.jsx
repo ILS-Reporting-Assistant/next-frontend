@@ -1,6 +1,7 @@
-import { Icon, Progress } from '@app/components'
-import { ROUTE, sampleIspReviewContent } from '@app/data'
-import { Fragment, useState } from 'react'
+import { Icon, Progress, Notification } from '@app/components'
+import { ROUTE } from '@app/data'
+import { Fragment, useState, useEffect, useCallback } from 'react'
+import { useSelector } from 'react-redux'
 import {
   ComplianceNotice,
   Skills,
@@ -25,12 +26,53 @@ import {
   StyledStepContentWrapper,
   StyledStepText,
 } from 'collections/progress-reports/create-reports/elements'
+import { clientsService, reportService, extractErrorMessage } from '@app/services'
+import { isValidationError } from '@app/utils'
+import { ReportType } from '@app/enums'
 
 export const CreateIspReviews = () => {
+  const { user } = useSelector((state) => state)
   const [currentStep, setCurrentStep] = useState(1)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [clients, setClients] = useState([])
+  const [clientsLoading, setClientsLoading] = useState(false)
+  const [selectedSkills, setSelectedSkills] = useState([])
+  const [uploadedFile, setUploadedFile] = useState(null)
+  const [notes, setNotes] = useState('')
+  const [reportContent, setReportContent] = useState('')
+  const [originalContent, setOriginalContent] = useState('')
+  const [fileId, setFileId] = useState(null)
+  const [reportName, setReportName] = useState('Annual ISP Review')
+  const [isExtracting, setIsExtracting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
+  const organizationId = user.currentOrganizationId
+
+  // Fetch clients on mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      setClientsLoading(true)
+      try {
+        const response = await clientsService.getOrganizationClients(organizationId, {
+          page: 1,
+          limit: 100,
+        })
+        setClients(response.data?.clients || [])
+      } catch (error) {
+        if (isValidationError(error)) return
+        Notification({
+          message: 'Failed to fetch clients',
+          description: extractErrorMessage(error),
+          type: 'error',
+        })
+      } finally {
+        setClientsLoading(false)
+      }
+    }
+    fetchClients()
+  }, [organizationId])
 
   const getStepTitle = () => {
     switch (currentStep) {
@@ -47,9 +89,129 @@ export const CreateIspReviews = () => {
     }
   }
 
-  const handleNext = () => {
-    if (currentStep === 3) {
+  const handleFileUpload = useCallback((file) => {
+    setUploadedFile(file)
+  }, [])
+
+  const handleExtractDocument = useCallback(async () => {
+    // Validate that at least one of file or notes is provided
+    if (!uploadedFile && !notes) {
+      Notification({
+        message: 'No input provided',
+        description: 'Please upload a document or enter notes',
+        type: 'error',
+      })
+      return
+    }
+
+    // Notes are already plain text from UploadDocument component
+    const notesText = notes || undefined
+
+    // Get the actual file object (antd Upload provides originFileObj) if file is provided
+    const file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
+
+    setIsExtracting(true)
+    try {
+      const clientId = selectedClient?._id || selectedClient?.id || null
+      const result = await reportService.uploadIspDocument(file, organizationId, selectedSkills, clientId, notesText)
+      setReportContent(result.content)
+      setOriginalContent(result.originalContent || '')
+      setFileId(result.fileId || null)
       setShowSuccess(true)
+    } catch (error) {
+      if (isValidationError(error)) return
+      Notification({
+        message: 'Failed to extract document',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+    } finally {
+      setIsExtracting(false)
+    }
+  }, [uploadedFile, notes, organizationId, selectedSkills, selectedClient])
+
+  const handleSaveReport = useCallback(async () => {
+    if (!selectedClient) {
+      Notification({
+        message: 'Client is required',
+        description: 'Please select a client first',
+        type: 'error',
+      })
+      return
+    }
+
+    // fileId is optional now (can be null if notes were used instead of file)
+
+    if (!reportName || !reportContent) {
+      Notification({
+        message: 'Report data is incomplete',
+        description: 'Please ensure report name and content are filled',
+        type: 'error',
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        organizationId: organizationId || undefined,
+        clientId: selectedClient?._id,
+        reportType: ReportType.ISP,
+        reportName,
+        fileId: fileId || undefined,
+        originalContent,
+        content: reportContent,
+        skills: selectedSkills,
+      }
+
+      const result = await reportService.saveReport(payload)
+      Notification({
+        message: 'Report saved successfully',
+        type: 'success',
+      })
+      // Navigate to first step after successful save
+      setCurrentStep(1)
+      setShowSuccess(false)
+      // Reset form state
+      setReportContent('')
+      setOriginalContent('')
+      setFileId(null)
+      setReportName('Annual ISP Review')
+      setUploadedFile(null)
+      setNotes('')
+      setSelectedSkills([])
+      setSelectedClient(null)
+      return result
+    } catch (error) {
+      if (isValidationError(error)) return
+      Notification({
+        message: 'Failed to save report',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+      throw error
+    } finally {
+      setIsSaving(false)
+    }
+  }, [selectedClient, fileId, reportName, reportContent, originalContent, organizationId, selectedSkills])
+
+  const handleNext = () => {
+    if (currentStep === 1 && !selectedClient) {
+      Notification({
+        message: 'Please select a client',
+        type: 'warning',
+      })
+      return
+    }
+    if (currentStep === 2 && selectedSkills.length === 0) {
+      Notification({
+        message: 'Please select at least one skill',
+        type: 'warning',
+      })
+      return
+    }
+    if (currentStep === 3) {
+      handleExtractDocument()
     } else if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1)
     }
@@ -77,17 +239,37 @@ export const CreateIspReviews = () => {
 
     switch (currentStep) {
       case 1:
-        return <ComplianceNotice />
+        return (
+          <ComplianceNotice
+            clients={clients}
+            clientsLoading={clientsLoading}
+            selectedClient={selectedClient}
+            onClientChange={setSelectedClient}
+          />
+        )
       case 2:
-        return <Skills />
+        return <Skills selectedSkills={selectedSkills} onSkillsChange={setSelectedSkills} />
       case 3:
-        return <UploadDocument />
+        return (
+          <UploadDocument
+            uploadedFile={uploadedFile}
+            onFileChange={handleFileUpload}
+            notes={notes}
+            onNotesChange={setNotes}
+          />
+        )
       case 4:
         return (
           <ReviewRevice
             onGoBack={handleGoBack}
-            defaultReportName="Annual ISP Review 11/25"
-            defaultReportContent={sampleIspReviewContent}
+            defaultReportName={reportName}
+            defaultReportContent={reportContent}
+            onReportNameChange={setReportName}
+            onReportContentChange={setReportContent}
+            onSaveReport={handleSaveReport}
+            isSaving={isSaving}
+            originalContent={originalContent}
+            reportType={ReportType.ISP}
           />
         )
       default:
@@ -132,7 +314,7 @@ export const CreateIspReviews = () => {
             </StyledStepText>
           ) : null}
 
-          {((currentStep === 4 || currentStep === 3))? (
+          {currentStep === 4 || currentStep === 3 ? (
             renderStepContent()
           ) : (
             <StyledStepContentWrapper>{renderStepContent()}</StyledStepContentWrapper>
@@ -143,8 +325,13 @@ export const CreateIspReviews = () => {
               <StyledButtonContainer>
                 <StyledButtonContainerWrapper>
                   <StyledGoBackButton onClick={handleGoBack}>Go Back</StyledGoBackButton>
-                  <StyledNextButton type="primary" onClick={handleNext}>
-                    {currentStep === 3 ? 'Generate My Report' : 'Next'}
+                  <StyledNextButton
+                    type="primary"
+                    onClick={handleNext}
+                    loading={currentStep === 3 && isExtracting}
+                    disabled={currentStep === 3 && isExtracting}
+                  >
+                    {currentStep === 3 ? (isExtracting ? 'Extracting...' : 'Generate My Report') : 'Next'}
                   </StyledNextButton>
                 </StyledButtonContainerWrapper>
               </StyledButtonContainer>
@@ -155,4 +342,3 @@ export const CreateIspReviews = () => {
     </Fragment>
   )
 }
-

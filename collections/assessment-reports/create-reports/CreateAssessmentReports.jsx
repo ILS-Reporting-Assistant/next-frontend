@@ -270,6 +270,7 @@ export const CreateAssessmentReports = () => {
             onSaveReport={handleSaveReport}
             isSaving={isSaving}
             originalContent={originalContent}
+            reportType={ReportType.ASSESSMENT}
           />
         )
       default:

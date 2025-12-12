@@ -42,6 +42,72 @@ export const reportService = {
     )
     return data.data
   },
+  async uploadProgressDocument(
+    file?: File,
+    organizationId?: string,
+    selectedSkills?: string[],
+    clientId?: string,
+    notes?: string,
+  ): Promise<GenerateAssessmentReportResponse> {
+    const formData = new FormData()
+
+    // Add file only if provided
+    if (file) {
+      formData.append('file', file)
+    }
+
+    if (organizationId) {
+      formData.append('organizationId', organizationId)
+    }
+    if (selectedSkills && selectedSkills.length > 0) {
+      formData.append('selectedSkills', JSON.stringify(selectedSkills))
+    }
+    if (clientId) {
+      formData.append('clientId', clientId)
+    }
+    if (notes) {
+      formData.append('notes', notes)
+    }
+
+    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
+      ENDPOINT.REPORTS.GENERATE_PROGRESS_REPORT,
+      formData,
+    )
+    return data.data
+  },
+  async uploadIspDocument(
+    file?: File,
+    organizationId?: string,
+    selectedSkills?: string[],
+    clientId?: string,
+    notes?: string,
+  ): Promise<GenerateAssessmentReportResponse> {
+    const formData = new FormData()
+
+    // Add file only if provided
+    if (file) {
+      formData.append('file', file)
+    }
+
+    if (organizationId) {
+      formData.append('organizationId', organizationId)
+    }
+    if (selectedSkills && selectedSkills.length > 0) {
+      formData.append('selectedSkills', JSON.stringify(selectedSkills))
+    }
+    if (clientId) {
+      formData.append('clientId', clientId)
+    }
+    if (notes) {
+      formData.append('notes', notes)
+    }
+
+    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
+      ENDPOINT.REPORTS.GENERATE_ISP_REPORT,
+      formData,
+    )
+    return data.data
+  },
   async generateDocument(content: string): Promise<Blob> {
     const response = await httpClient.post<Blob>(
       ENDPOINT.REPORTS.GENERATE_DOC,
@@ -89,6 +155,7 @@ export const reportService = {
     originalContent: string,
     reportContent: string,
     revisionRequestValue: string,
+    reportType?: string,
   ): Promise<{ revisedContent: string }> {
     const { data } = await httpClient.post<ApiResponse<{ revisedContent: string }>>(
       ENDPOINT.REPORTS.REQUEST_AI_REVISION,
@@ -96,6 +163,7 @@ export const reportService = {
         originalContent,
         reportContent,
         revisionRequestValue,
+        reportType,
       },
     )
     return data.data

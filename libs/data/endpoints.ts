@@ -34,6 +34,8 @@ export const ENDPOINT = {
     GET: (reportId: string) => `/reports/${reportId}`,
     COUNT: '/reports/count',
     GENERATE_ASSESSMENT_REPORT: '/reports/generate/assessment',
+    GENERATE_PROGRESS_REPORT: '/reports/generate/progress',
+    GENERATE_ISP_REPORT: '/reports/generate/isp',
     GENERATE_PDF: '/reports/generate/pdf',
     GENERATE_DOC: '/reports/generate/doc',
     SAVE: '/reports/create',
