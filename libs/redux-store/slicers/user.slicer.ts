@@ -39,6 +39,8 @@ export const userSlicer = createSlice({
       state.role = undefined
       state.type = undefined
       state.emailVerifiedAt = undefined
+      state.currentOrganizationId = undefined
+      state.currentOrganizationRole = undefined
     },
     userUpdate: (state, action: PayloadAction<Pick<IUser, 'firstName' | 'lastName'>>) => {
       if (action.payload.firstName) state.firstName = action.payload.firstName

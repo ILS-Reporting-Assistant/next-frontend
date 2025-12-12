@@ -29,4 +29,14 @@ export const ENDPOINT = {
   STORAGE: {
     UPLOAD_DOCUMENT: '/storage/upload/document',
   },
+  REPORTS: {
+    LIST: '/reports',
+    GET: (reportId: string) => `/reports/${reportId}`,
+    COUNT: '/reports/count',
+    GENERATE_ASSESSMENT_REPORT: '/reports/generate/assessment',
+    GENERATE_PDF: '/reports/generate/pdf',
+    GENERATE_DOC: '/reports/generate/doc',
+    SAVE: '/reports/create',
+    REQUEST_AI_REVISION: '/reports/request-ai-revision',
+  },
 }

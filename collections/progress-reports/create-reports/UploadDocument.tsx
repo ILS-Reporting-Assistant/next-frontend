@@ -1,7 +1,6 @@
 import { Box, Icon, ReactQuill, Upload } from '@app/components'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { UploadFile } from '@app/types'
-import 'react-quill/dist/quill.snow.css'
 import {
   StyledStep3Heading,
   StyledStep3Description,
@@ -23,30 +22,90 @@ import {
   StyledStep3ContentWrapper,
 } from './elements'
 
-export const UploadDocument = () => {
-  const [uploadedFile, setUploadedFile] = useState<UploadFile | null>(null)
-  const [editorContent, setEditorContent] = useState<string>('')
+interface UploadDocumentProps {
+  uploadedFile?: UploadFile | null
+  onFileChange?: (file: UploadFile | null) => void
+  notes?: string
+  onNotesChange?: (notes: string) => void
+}
+
+export const UploadDocument = ({
+  uploadedFile: propUploadedFile,
+  onFileChange,
+  notes: propNotes,
+  onNotesChange,
+}: UploadDocumentProps) => {
+  const [uploadedFile, setUploadedFile] = useState<UploadFile | null>(propUploadedFile || null)
+  const [editorContent, setEditorContent] = useState<string>(propNotes || '')
+
+  // Sync with prop changes
+  useEffect(() => {
+    setUploadedFile(propUploadedFile || null)
+  }, [propUploadedFile])
+
+  useEffect(() => {
+    setEditorContent(propNotes || '')
+  }, [propNotes])
+
+  // Helper function to extract plain text from HTML
+  const extractPlainText = (html: string): string => {
+    // Use DOM API if available (browser environment)
+    if (typeof document !== 'undefined') {
+      try {
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = html
+        return (tempDiv.textContent || tempDiv.innerText || '').trim()
+      } catch {
+        // Fall through to regex method
+      }
+    }
+    // Fallback: use regex to strip HTML tags (works in SSR and as fallback)
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .trim()
+  }
+
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content)
+    if (onNotesChange) {
+      onNotesChange(extractPlainText(content))
+    }
+  }
 
   const handleFileChange = (info: any) => {
     const { fileList } = info
     if (fileList.length > 0) {
       const file = fileList[0]
       // Check file type
-      const allowedTypes = ['.txt', '.doc', '.docx', '.md']
+      const allowedTypes = ['.txt', '.doc', '.docx', '.md', '.pdf']
       const fileName = file.name || ''
       const fileExtension = '.' + fileName.split('.').pop()?.toLowerCase()
 
       if (allowedTypes.includes(fileExtension)) {
         setUploadedFile(file)
+        if (onFileChange) {
+          onFileChange(file)
+        }
       }
     } else {
       setUploadedFile(null)
+      if (onFileChange) {
+        onFileChange(null)
+      }
     }
   }
 
   const handleRemoveFile = (e: React.MouseEvent) => {
     e.stopPropagation()
     setUploadedFile(null)
+    if (onFileChange) {
+      onFileChange(null)
+    }
   }
 
   const beforeUpload = () => {
@@ -64,50 +123,46 @@ export const UploadDocument = () => {
         </StyledStep3Description>
 
         <Box>
-          {!uploadedFile && (
-            <>
-              <StyledDailyNotesHeading>Daily Notes & Observations</StyledDailyNotesHeading>
-              <StyledEditorWrapper>
-                <ReactQuill
-                  theme="snow"
-                  value={editorContent}
-                  onChange={setEditorContent}
-                  placeholder="Paste your daily notes, shift summaries, or observations here. Don't worry about formatting - I'll organize everything by skill area and create a professional narrative."
-                  modules={{
-                    toolbar: [
-                      [{ header: [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ color: [] }, { background: [] }],
-                      [{ align: [] }],
-                      ['link', 'image', 'video'],
-                      [{ list: 'ordered' }, { list: 'bullet' }],
-                      ['code-block'],
-                      // ['clean']
-                    ],
-                  }}
-                  formats={[
-                    'header',
-                    'bold',
-                    'italic',
-                    'underline',
-                    'strike',
-                    'color',
-                    'background',
-                    'align',
-                    'link',
-                    'image',
-                    'video',
-                    'list',
-                    'bullet',
-                    'code-block',
-                  ]}
-                />
-              </StyledEditorWrapper>
-              <StyledOrDivider>
-                <StyledOrText>Or</StyledOrText>
-              </StyledOrDivider>
-            </>
-          )}
+          <StyledDailyNotesHeading>Daily Notes & Observations</StyledDailyNotesHeading>
+          <StyledEditorWrapper>
+            <ReactQuill
+              theme="snow"
+              value={editorContent}
+              onChange={handleEditorChange}
+              placeholder="Paste your daily notes, shift summaries, or observations here. Don't worry about formatting - I'll organize everything by skill area and create a professional narrative."
+              modules={{
+                toolbar: [
+                  [{ header: [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ color: [] }, { background: [] }],
+                  [{ align: [] }],
+                  ['link', 'image', 'video'],
+                  [{ list: 'ordered' }, { list: 'bullet' }],
+                  ['code-block'],
+                  // ['clean']
+                ],
+              }}
+              formats={[
+                'header',
+                'bold',
+                'italic',
+                'underline',
+                'strike',
+                'color',
+                'background',
+                'align',
+                'link',
+                'image',
+                'video',
+                'list',
+                'bullet',
+                'code-block',
+              ]}
+            />
+          </StyledEditorWrapper>
+          <StyledOrDivider>
+            <StyledOrText>Or</StyledOrText>
+          </StyledOrDivider>
 
           <StyledUploadWrapper>
             <Upload
@@ -115,7 +170,7 @@ export const UploadDocument = () => {
               onChange={handleFileChange}
               fileList={uploadedFile ? [uploadedFile] : []}
               showUploadList={false}
-              accept=".txt,.doc,.docx,.md"
+              accept=".txt,.doc,.docx,.md,.pdf"
               maxCount={1}
             >
               <StyledUploadBox>
@@ -125,7 +180,7 @@ export const UploadDocument = () => {
                   </StyledUploadIconInner>
                 </StyledUploadIcon>
                 <StyledUploadText>Upload Document</StyledUploadText>
-                <StyledFileTypesText>.txt, .doc, .docx, .md file types only</StyledFileTypesText>
+                <StyledFileTypesText>.txt, .doc, .docx, .md, .pdf file types only</StyledFileTypesText>
               </StyledUploadBox>
             </Upload>
 

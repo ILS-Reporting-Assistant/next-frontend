@@ -1,6 +1,6 @@
 import 'antd/dist/reset.css'
 
-import { App, Content, Icon, If, Layout, Sider, SiderMenu, Tooltip } from '@app/components'
+import { App, Content, Icon, If, Layout, Sider, SiderMenu } from '@app/components'
 import { ROUTE } from '@app/data'
 import { changeDynamicTheme, IStore, logout, persistor, store } from '@app/redux'
 import { GlobalStyles } from '@app/styles'
@@ -10,11 +10,11 @@ import { StyledBanner } from 'libs/components/layout/elements'
 import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { AppFonts } from 'public'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 import { ThemeProvider } from 'styled-components'
-import { NavBar, PlanUsage, SIDEBAR_MENU_ITEMS } from '~collections'
+import { NavBar, PlanUsage, PlanUsageProvider, SIDEBAR_MENU_ITEMS } from '~collections'
 
 export default function Root(props: AppProps) {
   return (
@@ -123,47 +123,49 @@ function Main({ Component, pageProps }: AppProps) {
 
             {/* Layout with sidebar ====================== */}
             <If condition={isSidebarVisible()}>
-              <Layout hasSider>
-                <Sider
-                  className="sidebar-layout sider-scrollbar-styling"
-                  breakpoint="lg"
-                  width="250px"
-                  style={{ ...backgroundColor }}
-                  theme={'dark'}
-                  collapsible={route === '/chat' ? false : true}
-                  onCollapse={(value) => updateSidebar(value)}
-                  // trigger={
-                  //   <>
-                  //     {isCollapsed ? (
-                  //       <Tooltip title={'Open Navigation'} placement="right">
-                  //         <Icon.RightSquareOutlined style={{ color: '#000' }} />
-                  //       </Tooltip>
-                  //     ) : (
-                  //       <Tooltip title={'Collapse Navigation'} placement="right">
-                  //         <Icon.LeftSquareOutlined style={{ color: '#000' }} />
-                  //       </Tooltip>
-                  //     )}
-                  //   </>
-                  // }
-                  trigger={null}
-                  collapsed={isCollapsed}
-                >
-                  <SiderMenu
-                    selectedKeys={[router.route.slice(1)]}
-                    theme={'dark'}
-                    mode={'inline'}
-                    defaultSelectedKeys={[router.route.slice(1)]}
-                    items={SIDEBAR_MENU_ITEMS()}
+              <PlanUsageProvider>
+                <Layout hasSider>
+                  <Sider
+                    className="sidebar-layout sider-scrollbar-styling"
+                    breakpoint="lg"
+                    width="250px"
                     style={{ ...backgroundColor }}
-                  />
-                  <PlanUsage isCollapsed={isCollapsed} />
-                </Sider>
-                <Layout>
-                  <Content header sidebar>
-                    <Component {...pageProps} />
-                  </Content>
+                    theme={'dark'}
+                    collapsible={route === '/chat' ? false : true}
+                    onCollapse={(value) => updateSidebar(value)}
+                    // trigger={
+                    //   <>
+                    //     {isCollapsed ? (
+                    //       <Tooltip title={'Open Navigation'} placement="right">
+                    //         <Icon.RightSquareOutlined style={{ color: '#000' }} />
+                    //       </Tooltip>
+                    //     ) : (
+                    //       <Tooltip title={'Collapse Navigation'} placement="right">
+                    //         <Icon.LeftSquareOutlined style={{ color: '#000' }} />
+                    //       </Tooltip>
+                    //     )}
+                    //   </>
+                    // }
+                    trigger={null}
+                    collapsed={isCollapsed}
+                  >
+                    <SiderMenu
+                      selectedKeys={[router.route.slice(1)]}
+                      theme={'dark'}
+                      mode={'inline'}
+                      defaultSelectedKeys={[router.route.slice(1)]}
+                      items={SIDEBAR_MENU_ITEMS()}
+                      style={{ ...backgroundColor }}
+                    />
+                    <PlanUsage isCollapsed={isCollapsed} />
+                  </Sider>
+                  <Layout>
+                    <Content header sidebar>
+                      <Component {...pageProps} />
+                    </Content>
+                  </Layout>
                 </Layout>
-              </Layout>
+              </PlanUsageProvider>
             </If>
           </Layout>
         </ThemeProvider>

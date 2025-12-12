@@ -1,4 +1,4 @@
-import { Button, DatePicker, Drawer, Form, FormItem, Notification, useForm } from '@app/components'
+import { Button, DatePicker, Drawer, FormItem, Notification, useForm } from '@app/components'
 import { IStore } from '@app/redux'
 import { clientsService, extractErrorMessage } from '@app/services'
 import { AddClientProps } from '@app/types'
@@ -6,6 +6,7 @@ import { isValidationError } from '@app/utils'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { StyledFooterContainer, StyledForm, StyledFormInput } from './elements'
+import moment from 'moment'
 
 export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
   const [form] = useForm()
@@ -24,15 +25,6 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
       setIsSubmitting(true)
       const values = await form.validateFields()
 
-      if (!organizationId) {
-        Notification({
-          message: 'Error',
-          description: 'Organization ID is missing',
-          type: 'error',
-        })
-        return
-      }
-
       if (!user.uid) {
         Notification({
           message: 'Error',
@@ -42,25 +34,17 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
         return
       }
 
-      const formatDate = (date: any) => {
-        if (!date) return undefined
-        const d = new Date(date)
-        const year = d.getFullYear()
-        const month = String(d.getMonth() + 1).padStart(2, '0')
-        const day = String(d.getDate()).padStart(2, '0')
-        return `${year}-${month}-${day}`
-      }
-
       const payload = {
         userId: user.uid,
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email || undefined,
-        startDate: formatDate(values.startDate),
-        endDate: formatDate(values.endDate),
+        startDate: moment(values.startDate).startOf('day').format(),
+        endDate: moment(values.endDate).endOf('day').format(),
+        ...(organizationId ? { organizationId } : {}),
       }
 
-      const response = await clientsService.createClient(organizationId, payload)
+      const response = await clientsService.createClient(payload)
 
       Notification({
         message: 'Client added',
@@ -112,33 +96,18 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
           <StyledFormInput placeholder="Enter last name" />
         </FormItem>
 
-        <FormItem
-          label="Email"
-          name="email"
-          rules={[
-            { type: 'email', message: 'Please enter a valid email' },
-          ]}
-        >
+        <FormItem label="Email" name="email" rules={[{ type: 'email', message: 'Please enter a valid email' }]}>
           <StyledFormInput placeholder="Enter email (optional)" />
         </FormItem>
 
         <FormItem label="Start Date" name="startDate">
-          <DatePicker
-            style={{ width: '100%', height: '40px' }}
-            placeholder="Select start date"
-            format="YYYY-MM-DD"
-          />
+          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select start date" format="YYYY-MM-DD" />
         </FormItem>
 
         <FormItem label="End Date" name="endDate">
-          <DatePicker
-            style={{ width: '100%', height: '40px' }}
-            placeholder="Select end date"
-            format="YYYY-MM-DD"
-          />
+          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select end date" format="YYYY-MM-DD" />
         </FormItem>
       </StyledForm>
     </Drawer>
   )
 }
-

@@ -1,11 +1,10 @@
 import { ReactQuillProps } from '@app/types'
 import dynamic from 'next/dynamic'
 import React from 'react'
+import 'react-quill/dist/quill.snow.css'
 
-// Dynamically import ReactQuill to avoid SSR issues
 const ReactQuillComponent = dynamic(() => import('react-quill'), { ssr: false })
 
 export const ReactQuill: React.FC<ReactQuillProps> = (props) => {
   return <ReactQuillComponent {...props} />
 }
-

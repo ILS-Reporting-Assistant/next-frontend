@@ -1,35 +1,29 @@
-import { Text, Select, Option, Tag, Box, Icon } from '@app/components'
-import { popularSkills, dummySkills } from '@app/utils'
-import React, { useState } from 'react'
+import { Box } from '@app/components'
+import { SkillsProps } from '@app/types'
+import { popularSkills } from '@app/utils'
 import {
-  StyledStep2Heading,
-  StyledStep2Description,
-  StyledSkillsLabel,
-  StyledSkillsIcon,
-  StyledSkillsSelect,
-  StyledPopularSkillsLabel,
   StyledPopularSkillsContainer,
+  StyledPopularSkillsLabel,
   StyledPopularSkillTag,
   StyledSelectedSkillsContainer,
   StyledSelectedSkillsLabel,
   StyledSelectedSkillsList,
   StyledSelectedSkillTag,
+  StyledStep2Description,
+  StyledStep2Heading,
 } from './elements'
 
-export const Skills = () => {
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([
-    'Home and Community Safety',
-    'Use of medical services',
-  ])
-
+export const Skills = ({ selectedSkills = [], onSkillsChange }: SkillsProps) => {
   const handleSelectSkill = (value: string) => {
-    if (!selectedSkills.includes(value)) {
-      setSelectedSkills([...selectedSkills, value])
+    if (!selectedSkills.includes(value) && onSkillsChange) {
+      onSkillsChange([...selectedSkills, value])
     }
   }
 
   const handleRemoveSkill = (skill: string) => {
-    setSelectedSkills(selectedSkills.filter((s) => s !== skill))
+    if (onSkillsChange) {
+      onSkillsChange(selectedSkills.filter((s) => s !== skill))
+    }
   }
 
   const handlePopularSkillClick = (skill: string) => {

@@ -1,9 +1,3 @@
-export interface ReviewReviceProps {
-  onGoBack?: () => void
-  defaultReportName?: string
-  defaultReportContent?: string
-}
-
 export interface SuccessProps {
   onComplete?: () => void
 }
@@ -13,4 +7,3 @@ export interface ProgressStep {
   text: string
   completed: boolean
 }
-

@@ -1,6 +1,7 @@
 export * from './account-registration'
 export * from './account-setting'
 export * from './add-client'
+export * from './assessment-reports'
 export * from './create-reports'
 export * from './custom-drawer'
 export * from './dashboard'

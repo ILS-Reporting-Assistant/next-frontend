@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  Dropdown,
-  Icon,
-  Notification,
-  Spacer,
-  Table,
-  Text,
-  Title,
-} from '@app/components'
+import { Box, Button, Dropdown, Icon, Modal, Notification, Spacer, Table, Text, Title } from '@app/components'
 import React, { useCallback, useEffect, useState } from 'react'
 import { StyledFlexContainer, StyledSearch, StyledClientAvatar } from './elements'
 import { Client } from '@app/types'
@@ -17,73 +7,68 @@ import { IStore } from '@app/redux'
 import { AddClient } from './AddClient'
 import { clientsService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
-import { ClientsData } from '@app/data'
+import moment from 'moment'
 
 export const Clients = () => {
   const { color, user } = useSelector((state: IStore) => state)
   const [open, setOpen] = useState(false)
-  const [clients, setClients] = useState<Client[]>(ClientsData)
+  const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [modalLoading, setModalLoading] = useState(false)
 
   const organizationId = user.currentOrganizationId
 
-  // Filter mock data based on search
-  useEffect(() => {
-    let filteredData = ClientsData
-    if (search) {
-      filteredData = ClientsData.filter(
-        (client) =>
-          client.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-          client.lastName?.toLowerCase().includes(search.toLowerCase()) ||
-          client.email?.toLowerCase().includes(search.toLowerCase())
-      )
-    }
-    setClients(filteredData)
-  }, [search])
-
   const fetchData = useCallback(async () => {
-    // Always use mock data - filter based on search
-    let filteredData = ClientsData
-    if (search) {
-      filteredData = ClientsData.filter(
-        (client) =>
-          client.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-          client.lastName?.toLowerCase().includes(search.toLowerCase()) ||
-          client.email?.toLowerCase().includes(search.toLowerCase())
-      )
+    setLoading(true)
+    try {
+      const response = await clientsService.getOrganizationClients(organizationId, {
+        page: currentPage,
+        limit: 10,
+        search: search || undefined,
+      })
+      setClients(response.data?.clients || [])
+      setTotal(response.data?.total || 0)
+    } catch (error) {
+      if (isValidationError(error)) return
+
+      Notification({
+        message: 'Failed to fetch clients',
+        description: extractErrorMessage(error as Error),
+        type: 'error',
+      })
+    } finally {
+      setLoading(false)
     }
-    setClients(filteredData)
-    
-    // Optional: Try to fetch from API in the background (commented out for now)
-    // if (organizationId) {
-    //   setLoading(true)
-    //   try {
-    //     const response = await clientsService.getOrganizationClients(organizationId, {
-    //       page: 1,
-    //       limit: 100,
-    //       search: search || undefined,
-    //     })
-    //     const apiClients = response.data?.clients || []
-    //     if (apiClients.length > 0) {
-    //       setClients(apiClients)
-    //     }
-    //   } catch (error) {
-    //     // Keep mock data on error
-    //   } finally {
-    //     setLoading(false)
-    //   }
-    // }
-  }, [search])
+  }, [organizationId, currentPage, search])
+
+  useEffect(() => {
+    if (search && currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [search, currentPage])
+
+  useEffect(() => {
+    fetchData()
+  }, [currentPage, search])
+
+  useEffect(() => {
+    setCurrentPage(1)
+    setClients([])
+    setTotal(0)
+  }, [organizationId])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+    return moment(dateString).format('MM-DD-YYYY')
   }
 
   const getClientName = (client: Client) => {
@@ -95,7 +80,7 @@ export const Clients = () => {
     const lastName = client.lastName || ''
     const firstLetter = firstName ? firstName.charAt(0).toUpperCase() : ''
     const lastLetter = lastName ? lastName.charAt(0).toUpperCase() : ''
-    
+
     if (firstLetter && lastLetter) {
       return `${firstLetter}${lastLetter}`
     }
@@ -108,25 +93,42 @@ export const Clients = () => {
     return 'C'
   }
 
-  const handleDelete = async (clientId: string) => {
-    if (!organizationId) return
+  const openModal = (client: Client) => {
+    setSelectedClient(client)
+    setModalOpen(true)
+  }
 
+  const closeModal = () => {
+    setModalOpen(false)
+    setSelectedClient(null)
+    setModalLoading(false)
+  }
+
+  const handleModalConfirm = async () => {
+    if (!selectedClient) return
+
+    setModalLoading(true)
     try {
-      await clientsService.deleteClient(organizationId, clientId)
+      await clientsService.deleteClient(organizationId, selectedClient._id)
       Notification({
         message: 'Client deleted',
         description: 'Client has been deleted successfully.',
         type: 'success',
       })
+      closeModal()
       fetchData()
     } catch (error: any) {
-      if (isValidationError(error)) return
+      if (isValidationError(error)) {
+        setModalLoading(false)
+        return
+      }
 
       Notification({
         message: 'Failed to delete client',
         description: extractErrorMessage(error),
         type: 'error',
       })
+      setModalLoading(false)
     }
   }
 
@@ -137,10 +139,7 @@ export const Clients = () => {
       key: 'name',
       render: (_: any, record: Client) => (
         <Box display="flex" alignItems="center">
-          <StyledClientAvatar
-            $backgroundColor={color.primary}
-            $textColor={color.white}
-           >
+          <StyledClientAvatar $backgroundColor={color.primary} $textColor={color.white}>
             {getAvatarText(record)}
           </StyledClientAvatar>
           <Text>{getClientName(record)}</Text>
@@ -180,7 +179,7 @@ export const Clients = () => {
             key: 'delete',
             label: 'Delete',
             danger: true,
-            onClick: () => handleDelete(record._id),
+            onClick: () => openModal(record),
           },
         ]
 
@@ -210,8 +209,38 @@ export const Clients = () => {
         />
       </Box>
       <Spacer value={24} />
-      <Table columns={clientColumns} dataSource={clients} bordered={false} loading={loading} rowKey="_id" />
+      <Table
+        columns={clientColumns}
+        dataSource={clients}
+        bordered={false}
+        loading={loading}
+        rowKey="_id"
+        pagination={{
+          current: currentPage,
+          pageSize: 10,
+          total: total,
+          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} clients`,
+          onChange: handlePageChange,
+        }}
+      />
+      <Modal
+        open={modalOpen}
+        title="Delete Client"
+        onCancel={closeModal}
+        onOk={handleModalConfirm}
+        confirmLoading={modalLoading}
+        okText="Delete"
+        okButtonProps={{ danger: true }}
+        cancelText="Cancel"
+      >
+        <Text>
+          {selectedClient
+            ? `Are you sure you want to delete the client ${getClientName(
+                selectedClient,
+              )}? This action cannot be undone.`
+            : ''}
+        </Text>
+      </Modal>
     </Box>
   )
 }
-

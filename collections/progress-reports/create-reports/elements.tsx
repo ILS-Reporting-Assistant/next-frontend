@@ -1053,6 +1053,26 @@ export const StyledDownloadButton = styled((props: ButtonProps) => <Button {...p
   }
 `
 
+export const StyledSaveButton = styled((props: ButtonProps) => <Button {...props} />)`
+  background: black !important;
+  border-color: black !important;
+  color: white !important;
+  border-radius: 4px !important;
+  height: 40px;
+  padding: 0 24px;
+  font-size: 14px;
+
+  &.ant-btn,
+  &.ant-btn-primary {
+    background: black !important;
+    border-color: black !important;
+    color: white !important;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+  }
+`
+
 // Fullscreen Modal Styles
 export const StyledFullscreenModalContent = styled((props: BoxProps) => <Box {...props} />)`
   margin-top: 16px;

@@ -1,58 +1,188 @@
-import { Box, Icon, Dropdown, Menu, MenuItem } from '@app/components'
-import { sampleReportContent } from '@app/data'
+import { Box, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
+import { useEffect, useState } from 'react'
+import { extractErrorMessage } from '../../../libs/services/auth'
+import { reportService } from '../../../libs/services/report'
 import { ReviewReviceProps } from '@app/types'
-import React, { useState } from 'react'
 import {
-  StyledStep4StepText,
-  StyledStep4ReviewHeading,
-  StyledStep4ReviewDescription,
-  StyledFinalReportHeading,
-  StyledReportNameLabel,
-  StyledReportNameInput,
-  StyledReportContentLabelWrapper,
-  StyledReportContentLabel,
-  StyledReportContentWrapper,
-  StyledReportContentTextArea,
-  StyledFullscreenButton,
-  StyledAIRevisionsSection,
   StyledAIRevisionsHeading,
   StyledAIRevisionsInput,
-  StyledReviseButtonWrapper,
-  StyledReviseButton,
-  StyledButtonWrapper,
+  StyledAIRevisionsSection,
   StyledButtonContainer,
   StyledButtonContainerWrapper,
-  StyledGoBackButton,
-  StyledCopyDownloadContainer,
+  StyledButtonWrapper,
   StyledCopyButton,
+  StyledCopyDownloadContainer,
   StyledDownloadButton,
-  StyledFullscreenModalContent,
-  StyledFullscreenReportName,
-  StyledFullscreenReportContent,
-  StyledStep4ReviewContentWrapper,
-  StyledIconWithRightMargin,
+  StyledSaveButton,
+  StyledFinalReportHeading,
+  StyledFullscreenButton,
   StyledFullscreenModal,
+  StyledFullscreenModalContent,
+  StyledFullscreenReportContent,
+  StyledFullscreenReportName,
+  StyledGoBackButton,
+  StyledIconWithRightMargin,
+  StyledReportContentLabel,
+  StyledReportContentLabelWrapper,
+  StyledReportContentTextArea,
+  StyledReportContentWrapper,
+  StyledReportNameInput,
+  StyledReportNameLabel,
+  StyledReviseButton,
+  StyledReviseButtonWrapper,
+  StyledStep4ReviewContentWrapper,
+  StyledStep4ReviewDescription,
+  StyledStep4ReviewHeading,
+  StyledStep4StepText,
 } from './elements'
 
-export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11/25', defaultReportContent = sampleReportContent }: ReviewReviceProps) => {
+export const ReviewRevice = ({
+  onGoBack,
+  defaultReportName = 'Progress Report 11/25',
+  defaultReportContent,
+  originalContent = '',
+  onReportNameChange,
+  onReportContentChange,
+  onSaveReport,
+  isSaving = false,
+}: ReviewReviceProps) => {
   const [reportName, setReportName] = useState(defaultReportName)
   const [reportContent, setReportContent] = useState(defaultReportContent)
   const [revisionRequest, setRevisionRequest] = useState('')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
+  const [isRequestingRevision, setIsRequestingRevision] = useState(false)
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setRevisionRequest(suggestion)
+  // Update local state when props change
+  useEffect(() => {
+    setReportName(defaultReportName)
+  }, [defaultReportName])
+
+  useEffect(() => {
+    setReportContent(defaultReportContent)
+  }, [defaultReportContent])
+
+  const handleRequestAIRevision = async () => {
+    if (!revisionRequest.trim()) {
+      Notification({
+        message: 'Revision request is required',
+        description: 'Please enter what you would like to be changed',
+        type: 'error',
+      })
+      return
+    }
+
+    if (!reportContent) {
+      Notification({
+        message: 'Report content is missing',
+        description: 'Cannot request revision without report content',
+        type: 'error',
+      })
+      return
+    }
+
+    // Use reportContent as fallback for originalContent if not provided
+    const contentToUseAsOriginal = originalContent || reportContent
+
+    setIsRequestingRevision(true)
+    try {
+      const result = await reportService.requestAIRevision(contentToUseAsOriginal, reportContent, revisionRequest)
+
+      const revisedContent = result.revisedContent || reportContent
+      setReportContent(revisedContent)
+
+      if (onReportContentChange) {
+        onReportContentChange(revisedContent)
+      }
+
+      Notification({
+        message: 'Report revised successfully',
+        type: 'success',
+      })
+
+      // Clear the revision request input
+      setRevisionRequest('')
+    } catch (error) {
+      Notification({
+        message: 'Failed to revise report',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+    } finally {
+      setIsRequestingRevision(false)
+    }
   }
 
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(reportContent)
     // You can add a notification here if needed
+    Notification({
+      message: 'Copied to clipboard',
+      type: 'success',
+    })
+  }
+
+  const handleDownloadDocx = async () => {
+    setIsDownloadingDocx(true)
+    try {
+      const blob = await reportService.generateDocument(reportContent)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'assessment-report.docx'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      Notification({
+        message: 'Failed to download report',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+    } finally {
+      setIsDownloadingDocx(false)
+    }
+  }
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true)
+    try {
+      const blob = await reportService.generatePDFDocument(reportContent)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'assessment-report.pdf'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      Notification({
+        message: 'Failed to download report',
+        description: extractErrorMessage(error),
+        type: 'error',
+      })
+    } finally {
+      setIsDownloadingPdf(false)
+    }
+  }
+
+  const handleSaveReport = async () => {
+    if (!onSaveReport) return
+
+    try {
+      await onSaveReport()
+    } catch (error) {
+      // Error is already handled in the parent component
+    }
   }
 
   const downloadMenu = (
     <Menu>
-      <MenuItem key="docx">Word Document (.docx)</MenuItem>
-      <MenuItem key="pdf">PDF (.pdf)</MenuItem>
+      <MenuItem key="docx" onClick={() => handleDownloadDocx()} disabled={isDownloadingDocx || isDownloadingPdf}>
+        {isDownloadingDocx ? 'Downloading...' : 'Word Document (.docx)'}
+      </MenuItem>
+      <MenuItem key="pdf" onClick={() => handleDownloadPdf()} disabled={isDownloadingDocx || isDownloadingPdf}>
+        {isDownloadingPdf ? 'Downloading...' : 'PDF (.pdf)'}
+      </MenuItem>
     </Menu>
   )
 
@@ -76,7 +206,16 @@ export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11
           </StyledFinalReportHeading>
 
           <StyledReportNameLabel>Report Name</StyledReportNameLabel>
-          <StyledReportNameInput type="text" value={reportName} onChange={(e) => setReportName(e.target.value)} />
+          <StyledReportNameInput
+            type="text"
+            value={reportName}
+            onChange={(e) => {
+              setReportName(e.target.value)
+              if (onReportNameChange) {
+                onReportNameChange(e.target.value)
+              }
+            }}
+          />
 
           <StyledReportContentLabelWrapper>
             <StyledReportContentLabel>Report Content</StyledReportContentLabel>
@@ -90,7 +229,16 @@ export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11
           </StyledReportContentLabelWrapper>
 
           <StyledReportContentWrapper>
-            <StyledReportContentTextArea rows={10} value={reportContent} onChange={(e) => setReportContent(e.target.value)} />
+            <StyledReportContentTextArea
+              rows={10}
+              value={reportContent}
+              onChange={(e) => {
+                setReportContent(e.target.value)
+                if (onReportContentChange) {
+                  onReportContentChange(e.target.value)
+                }
+              }}
+            />
           </StyledReportContentWrapper>
         </Box>
 
@@ -112,9 +260,9 @@ export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11
             <StyledReviseButton
               type="primary"
               icon={<Icon.BulbOutlined />}
-              onClick={() => {
-                // Handle AI revision request
-              }}
+              onClick={handleRequestAIRevision}
+              loading={isRequestingRevision}
+              disabled={isRequestingRevision || !revisionRequest.trim()}
             >
               Revise with AI
             </StyledReviseButton>
@@ -129,11 +277,24 @@ export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11
             <StyledCopyDownloadContainer>
               <StyledCopyButton onClick={handleCopyToClipboard}>Copy To Clipboard</StyledCopyButton>
               <Dropdown overlay={downloadMenu} trigger={['click']}>
-                <StyledDownloadButton>
-                  Download Report{' '}
-                  <Icon.DownOutlined />
+                <StyledDownloadButton
+                  loading={isDownloadingDocx || isDownloadingPdf}
+                  disabled={isDownloadingDocx || isDownloadingPdf}
+                >
+                  Download Report <Icon.DownOutlined />
                 </StyledDownloadButton>
               </Dropdown>
+              {onSaveReport && (
+                <StyledSaveButton
+                  type="primary"
+                  onClick={handleSaveReport}
+                  loading={isSaving}
+                  disabled={isSaving}
+                  icon={<Icon.SaveOutlined />}
+                >
+                  Save Report
+                </StyledSaveButton>
+              )}
             </StyledCopyDownloadContainer>
           </StyledButtonContainerWrapper>
         </StyledButtonContainer>
@@ -156,7 +317,16 @@ export const ReviewRevice = ({ onGoBack, defaultReportName = 'Progress Report 11
         }
       >
         <StyledFullscreenModalContent>
-          <StyledFullscreenReportContent rows={15} value={reportContent} onChange={(e) => setReportContent(e.target.value)} />
+          <StyledFullscreenReportContent
+            rows={15}
+            value={reportContent}
+            onChange={(e) => {
+              setReportContent(e.target.value)
+              if (onReportContentChange) {
+                onReportContentChange(e.target.value)
+              }
+            }}
+          />
         </StyledFullscreenModalContent>
       </StyledFullscreenModal>
     </>
