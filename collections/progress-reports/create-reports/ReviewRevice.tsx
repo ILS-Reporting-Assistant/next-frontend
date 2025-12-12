@@ -87,7 +87,12 @@ export const ReviewRevice = ({
 
     setIsRequestingRevision(true)
     try {
-      const result = await reportService.requestAIRevision(contentToUseAsOriginal, reportContent, revisionRequest)
+      const result = await reportService.requestAIRevision(
+        contentToUseAsOriginal,
+        reportContent,
+        revisionRequest,
+        'progress',
+      )
 
       const revisedContent = result.revisedContent || reportContent
       setReportContent(revisedContent)

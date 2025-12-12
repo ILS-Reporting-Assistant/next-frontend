@@ -12,6 +12,7 @@ export const ROUTE = {
   ROOT: '/',
   PROGRESS_REPORTS: '/progress-reports',
   CREATE_PROGRESS_REPORTS: '/progress-reports/create-reports',
+  VIEW_PROGRESS_REPORT: '/progress-reports/view',
   ACCOUNT_SETTING: '/account-setting',
   CLIENTS: '/clients',
   ASSESSMENT_REPORTS: '/assessment-reports',

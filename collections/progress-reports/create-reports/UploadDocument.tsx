@@ -21,13 +21,7 @@ import {
   StyledEditorWrapper,
   StyledStep3ContentWrapper,
 } from './elements'
-
-interface UploadDocumentProps {
-  uploadedFile?: UploadFile | null
-  onFileChange?: (file: UploadFile | null) => void
-  notes?: string
-  onNotesChange?: (notes: string) => void
-}
+import { UploadDocumentProps } from './types'
 
 export const UploadDocument = ({
   uploadedFile: propUploadedFile,
