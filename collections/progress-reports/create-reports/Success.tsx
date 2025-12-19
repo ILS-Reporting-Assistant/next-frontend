@@ -1,8 +1,8 @@
-import { Box, Icon, Text, Title } from '@app/components'
+import { Icon, Spin } from '@app/components'
 import { SuccessProps } from '@app/types'
 import { progressSteps } from '@app/utils'
 import { StarsAnimation } from 'public/images'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   StyledStep4Container,
   StyledStarIconContainer,
@@ -14,46 +14,50 @@ import {
   StyledProgressStepText,
 } from './elements'
 
-export const Success = ({ onComplete }: SuccessProps) => {
+export const Success = ({ onComplete, isExtracting = true, apiSuccess = false }: SuccessProps) => {
   const [steps, setSteps] = useState(progressSteps)
+  const sequenceStartedRef = useRef(false)
 
   useEffect(() => {
-    // Animate steps completion in sequence
-    // First check: Analyzing your information
-    const timer1 = setTimeout(() => {
-      setSteps((prev) =>
-        prev.map((step) => (step.id === 1 ? { ...step, completed: true } : step))
-      )
-    }, 800)
-
-    // Second check: Crafting professional language
-    const timer2 = setTimeout(() => {
-      setSteps((prev) =>
-        prev.map((step) => (step.id === 2 ? { ...step, completed: true } : step))
-      )
-    }, 1800)
-
-    // Third check: Adding final touches
-    const timer3 = setTimeout(() => {
-      setSteps((prev) =>
-        prev.map((step) => (step.id === 3 ? { ...step, completed: true } : step))
-      )
-    }, 2800)
-
-    // When all steps are completed, call onComplete callback after a short delay
-    const timer4 = setTimeout(() => {
-      if (onComplete) {
-        onComplete()
-      }
-    }, 3500)
-
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-      clearTimeout(timer3)
-      clearTimeout(timer4)
+    // Reset when component mounts or when extraction starts
+    if (isExtracting && !apiSuccess) {
+      setSteps(progressSteps)
+      sequenceStartedRef.current = false
     }
-  }, [onComplete])
+  }, [isExtracting, apiSuccess])
+
+  useEffect(() => {
+    // When API call succeeds, start completing steps sequentially
+    if (apiSuccess && !isExtracting && !sequenceStartedRef.current) {
+      sequenceStartedRef.current = true
+
+      // Complete first step immediately when API succeeds
+      setSteps((prev) => prev.map((step) => (step.id === 1 ? { ...step, completed: true } : step)))
+
+      // Complete second step after delay
+      const timer2 = setTimeout(() => {
+        setSteps((prev) => prev.map((step) => (step.id === 2 ? { ...step, completed: true } : step)))
+
+        // Complete third step after delay
+        const timer3 = setTimeout(() => {
+          setSteps((prev) => prev.map((step) => (step.id === 3 ? { ...step, completed: true } : step)))
+
+          // When all steps are completed, call onComplete
+          const timer4 = setTimeout(() => {
+            if (onComplete) {
+              onComplete()
+            }
+          }, 2000)
+
+          return () => clearTimeout(timer4)
+        }, 1000)
+
+        return () => clearTimeout(timer3)
+      }, 1000)
+
+      return () => clearTimeout(timer2)
+    }
+  }, [apiSuccess, isExtracting, onComplete])
 
   return (
     <StyledStep4Container>
@@ -61,26 +65,31 @@ export const Success = ({ onComplete }: SuccessProps) => {
         <StarsAnimation />
       </StyledStarIconContainer>
 
-      <StyledStep4MainHeading level={2}>
-        Creating Your Personalized Report
-      </StyledStep4MainHeading>
+      <StyledStep4MainHeading level={2}>Creating Your Personalized Report</StyledStep4MainHeading>
 
       <StyledStep4Description>
-        Almost there! I'm transforming your observations into a comprehensive, professional
-        narrative that highlights your client's strengths and progress.
+        Almost there! I'm transforming your observations into a comprehensive, professional narrative that highlights
+        your client's strengths and progress.
       </StyledStep4Description>
 
       <StyledProgressStepsContainer>
-        {steps.map((step) => (
-          <StyledProgressStep key={step.id}>
-            <StyledCheckCircle completed={step.completed}>
-              {step.completed && <Icon.CheckOutlined />}
-            </StyledCheckCircle>
-            <StyledProgressStepText>{step.text}</StyledProgressStepText>
-          </StyledProgressStep>
-        ))}
+        {steps.map((step) => {
+          const isFirstStep = step.id === 1
+          const isLoading = isFirstStep && isExtracting && !apiSuccess
+          return (
+            <StyledProgressStep key={step.id}>
+              {isLoading ? (
+                <Spin size="small" />
+              ) : (
+                <StyledCheckCircle completed={step.completed}>
+                  {step.completed ? <Icon.CheckOutlined /> : null}
+                </StyledCheckCircle>
+              )}
+              <StyledProgressStepText>{step.text}</StyledProgressStepText>
+            </StyledProgressStep>
+          )
+        })}
       </StyledProgressStepsContainer>
     </StyledStep4Container>
   )
 }
-

@@ -24,9 +24,8 @@ export const StyledSider = styled((props: SiderProps) => <AntLayout.Sider {...pr
     padding-right: 30px;
     padding-left: 30px;
     width: 70px;
-    margin-bottom: 40px;
+    margin-bottom: ${(props) => (props.collapsed ? '8px' : '180px')};
   }
-
 
   ::-webkit-scrollbar {
     width: 5px !important;

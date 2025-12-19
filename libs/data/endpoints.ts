@@ -33,6 +33,7 @@ export const ENDPOINT = {
     LIST: '/reports',
     GET: (reportId: string) => `/reports/${reportId}`,
     COUNT: '/reports/count',
+    BY_CLIENT: (clientId: string) => `/reports/client/${clientId}`,
     GENERATE_ASSESSMENT_REPORT: '/reports/generate/assessment',
     GENERATE_PROGRESS_REPORT: '/reports/generate/progress',
     GENERATE_ISP_REPORT: '/reports/generate/isp',
@@ -40,5 +41,8 @@ export const ENDPOINT = {
     GENERATE_DOC: '/reports/generate/doc',
     SAVE: '/reports/create',
     REQUEST_AI_REVISION: '/reports/request-ai-revision',
+  },
+  STATUS_HISTORY: {
+    BY_CLIENT: (clientId: string) => `/status-history/client/${clientId}`,
   },
 }

@@ -2,6 +2,8 @@ import { Report } from '../api/reports'
 
 export interface SuccessProps {
   onComplete?: () => void
+  isExtracting?: boolean
+  apiSuccess?: boolean
 }
 
 export interface ProgressStep {

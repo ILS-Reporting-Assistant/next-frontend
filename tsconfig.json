@@ -28,7 +28,6 @@
     "incremental": true,
     "baseUrl": "./",
     "paths": {
-      "@app/assets": ["libs/assets"],
       "@app/collections": ["libs/collections"],
       "@app/generic-collections": ["collections/__generic"],
       "@app/components": ["libs/components"],

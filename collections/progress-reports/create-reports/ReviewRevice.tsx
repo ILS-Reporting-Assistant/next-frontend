@@ -1,4 +1,4 @@
-import { Box, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification, TipTap } from '@app/components'
 import { useEffect, useState } from 'react'
 import { extractErrorMessage } from '../../../libs/services/auth'
 import { reportService } from '../../../libs/services/report'
@@ -19,13 +19,11 @@ import {
   StyledFullscreenButton,
   StyledFullscreenModal,
   StyledFullscreenModalContent,
-  StyledFullscreenReportContent,
   StyledFullscreenReportName,
   StyledGoBackButton,
   StyledIconWithRightMargin,
   StyledReportContentLabel,
   StyledReportContentLabelWrapper,
-  StyledReportContentTextArea,
   StyledReportContentWrapper,
   StyledReportNameInput,
   StyledReportNameLabel,
@@ -35,7 +33,11 @@ import {
   StyledStep4ReviewDescription,
   StyledStep4ReviewHeading,
   StyledStep4StepText,
+  StyledButton,
+  StyledReadOnlyTipTap,
+  StyledFullscreenReadOnlyTipTap,
 } from './elements'
+import { useReportEditor } from '@app/hooks'
 
 export const ReviewRevice = ({
   onGoBack,
@@ -55,6 +57,31 @@ export const ReviewRevice = ({
   const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [isRequestingRevision, setIsRequestingRevision] = useState(false)
+
+  // Main editor for the regular view
+  const { editor, handleCopyToClipboard } = useReportEditor({
+    content: reportContent || '',
+    editable: true,
+    enableCopyToClipboard: true,
+    onUpdate: (markdown) => {
+      setReportContent(markdown)
+      if (onReportContentChange) {
+        onReportContentChange(markdown)
+      }
+    },
+  })
+
+  // Fullscreen editor
+  const { editor: fullscreenEditor } = useReportEditor({
+    content: reportContent || '',
+    editable: true,
+    onUpdate: (markdown) => {
+      setReportContent(markdown)
+      if (onReportContentChange) {
+        onReportContentChange(markdown)
+      }
+    },
+  })
 
   // Update local state when props change
   useEffect(() => {
@@ -121,15 +148,6 @@ export const ReviewRevice = ({
     }
   }
 
-  const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(reportContent)
-    // You can add a notification here if needed
-    Notification({
-      message: 'Copied to clipboard',
-      type: 'success',
-    })
-  }
-
   const handleDownloadDocx = async () => {
     setIsDownloadingDocx(true)
     try {
@@ -137,7 +155,7 @@ export const ReviewRevice = ({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'assessment-report.docx'
+      a.download = `${reportName || 'progress-report'}.docx`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -158,7 +176,7 @@ export const ReviewRevice = ({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'assessment-report.pdf'
+      a.download = `${reportName || 'progress-report'}.pdf`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -205,12 +223,12 @@ export const ReviewRevice = ({
         </StyledStep4ReviewDescription>
 
         <Box>
-          <StyledFinalReportHeading>
+          {/* <StyledFinalReportHeading>
             <StyledIconWithRightMargin>
               <Icon.FileTextOutlined />
             </StyledIconWithRightMargin>
             Your Final Report
-          </StyledFinalReportHeading>
+          </StyledFinalReportHeading> */}
 
           <StyledReportNameLabel>Report Name</StyledReportNameLabel>
           <StyledReportNameInput
@@ -226,26 +244,29 @@ export const ReviewRevice = ({
 
           <StyledReportContentLabelWrapper>
             <StyledReportContentLabel>Report Content</StyledReportContentLabel>
-            <StyledFullscreenButton
+            {/* <StyledFullscreenButton
               size="small"
               icon={<Icon.FullscreenOutlined />}
               onClick={() => setIsFullscreenOpen(true)}
             >
               View in Fullscreen
-            </StyledFullscreenButton>
+            </StyledFullscreenButton> */}
           </StyledReportContentLabelWrapper>
 
           <StyledReportContentWrapper>
-            <StyledReportContentTextArea
-              rows={10}
-              value={reportContent}
-              onChange={(e) => {
-                setReportContent(e.target.value)
-                if (onReportContentChange) {
-                  onReportContentChange(e.target.value)
-                }
-              }}
-            />
+            <StyledReadOnlyTipTap editor={editor} value={reportContent} showToolbar={true} />
+            <Box marginTop="8px">
+              <Button type="default" icon={<Icon.CopyOutlined />} onClick={handleCopyToClipboard} />
+              <Dropdown overlay={downloadMenu} trigger={['click']}>
+                <StyledButton
+                  type="default"
+                  icon={<Icon.DownloadOutlined />}
+                  loading={isDownloadingDocx || isDownloadingPdf}
+                  disabled={isDownloadingDocx || isDownloadingPdf}
+                />
+              </Dropdown>
+              <Button type="default" icon={<Icon.FullscreenOutlined />} onClick={() => setIsFullscreenOpen(true)} />
+            </Box>
           </StyledReportContentWrapper>
         </Box>
 
@@ -282,15 +303,15 @@ export const ReviewRevice = ({
           <StyledButtonContainerWrapper>
             <StyledGoBackButton onClick={onGoBack}>Go Back</StyledGoBackButton>
             <StyledCopyDownloadContainer>
-              <StyledCopyButton onClick={handleCopyToClipboard}>Copy To Clipboard</StyledCopyButton>
-              <Dropdown overlay={downloadMenu} trigger={['click']}>
+              {/* <StyledCopyButton onClick={handleCopyToClipboard}>Copy To Clipboard</StyledCopyButton> */}
+              {/* <Dropdown overlay={downloadMenu} trigger={['click']}>
                 <StyledDownloadButton
                   loading={isDownloadingDocx || isDownloadingPdf}
                   disabled={isDownloadingDocx || isDownloadingPdf}
                 >
                   Download Report <Icon.DownOutlined />
                 </StyledDownloadButton>
-              </Dropdown>
+              </Dropdown> */}
               {onSaveReport && (
                 <StyledSaveButton
                   type="primary"
@@ -311,7 +332,7 @@ export const ReviewRevice = ({
         open={isFullscreenOpen}
         onCancel={() => setIsFullscreenOpen(false)}
         footer={null}
-        width="95%"
+        width="85%"
         centered={true}
         closeIcon={<Icon.FullscreenExitOutlined />}
         title={
@@ -324,15 +345,11 @@ export const ReviewRevice = ({
         }
       >
         <StyledFullscreenModalContent>
-          <StyledFullscreenReportContent
-            rows={15}
+          <StyledFullscreenReadOnlyTipTap
+            editor={fullscreenEditor}
             value={reportContent}
-            onChange={(e) => {
-              setReportContent(e.target.value)
-              if (onReportContentChange) {
-                onReportContentChange(e.target.value)
-              }
-            }}
+            showToolbar={true}
+            style={{ minHeight: '400px' }}
           />
         </StyledFullscreenModalContent>
       </StyledFullscreenModal>

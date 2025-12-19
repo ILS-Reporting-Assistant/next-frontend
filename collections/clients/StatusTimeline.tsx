@@ -1,0 +1,171 @@
+import { Box, Notification, Spacer, Text, Spin } from '@app/components'
+import { Timeline } from 'antd'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { extractErrorMessage, statusHistoryService } from '@app/services'
+import { useInView } from 'react-intersection-observer'
+import moment from 'moment'
+import { StatusHistory, StatusTimelineProps } from '@app/types'
+import {
+  StyledLoadingContainer,
+  StyledEmptyStateContainer,
+  StyledReportTypeText,
+  StyledTimelineMetaText,
+  StyledPaginationContainer,
+} from './elements'
+import { isValidationError } from '../../libs/utils'
+import { IStore } from '@app/redux'
+import { useSelector } from 'react-redux'
+import { UserRole } from '@app/enums'
+
+export const StatusTimeline: React.FC<StatusTimelineProps> = ({ clientId }) => {
+  const { user } = useSelector((state: IStore) => state)
+  const [statusHistories, setStatusHistories] = useState<StatusHistory[]>([])
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined)
+  const [hasMore, setHasMore] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(true)
+  const loadingRef = useRef(false)
+
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+    triggerOnce: false,
+  })
+
+  const fetchStatusHistories = useCallback(
+    async (cursor?: string) => {
+      if (!clientId || loadingRef.current) return
+
+      loadingRef.current = true
+      setLoading(true)
+      try {
+        const response = await statusHistoryService.getStatusHistoriesByClientId(clientId, {
+          cursor,
+          limit: 10,
+        })
+        if (cursor) {
+          setStatusHistories((prev) => [...prev, ...response.statusHistories])
+        } else {
+          setStatusHistories(response.statusHistories)
+        }
+        setNextCursor(response.nextCursor)
+        setHasMore(response.hasMore)
+      } catch (error) {
+        if (isValidationError(error)) return
+
+        Notification({
+          message: 'Failed to fetch status timeline',
+          description: extractErrorMessage(error),
+          type: 'error',
+        })
+      } finally {
+        loadingRef.current = false
+        setLoading(false)
+        setInitialLoad(false)
+      }
+    },
+    [clientId],
+  )
+
+  useEffect(() => {
+    // Reset state when clientId changes
+    setStatusHistories([])
+    setNextCursor(undefined)
+    setHasMore(false)
+    setInitialLoad(true)
+  }, [clientId])
+
+  useEffect(() => {
+    if (clientId && initialLoad) {
+      fetchStatusHistories()
+    }
+  }, [clientId, initialLoad, fetchStatusHistories])
+
+  useEffect(() => {
+    // Trigger pagination when scrolling and the pagination container comes into view
+    if (inView && hasMore && !loadingRef.current && nextCursor && clientId) {
+      fetchStatusHistories(nextCursor)
+    }
+  }, [inView, hasMore, nextCursor, fetchStatusHistories, clientId])
+
+  if (!clientId) {
+    return null
+  }
+
+  if (initialLoad && loading) {
+    return (
+      <StyledLoadingContainer>
+        <Spin />
+      </StyledLoadingContainer>
+    )
+  }
+
+  if (!loading && statusHistories.length === 0) {
+    return (
+      <Box>
+        <Text>Status Timeline</Text>
+        <Spacer value={24} />
+        <StyledEmptyStateContainer>
+          <Text type="secondary">No history available</Text>
+        </StyledEmptyStateContainer>
+      </Box>
+    )
+  }
+
+  const getTimelineItemContent = (statusHistory: StatusHistory) => {
+    const reportInfo =
+      typeof statusHistory.reportId === 'object' && statusHistory.reportId !== null ? statusHistory.reportId : null
+
+    const userInfo =
+      typeof statusHistory.userId === 'object' && statusHistory.userId !== null ? statusHistory.userId : null
+
+    const userName = userInfo
+      ? `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || userInfo.emailAddress
+      : 'Unknown User'
+
+    const reportName = reportInfo?.reportName || 'Report'
+    const reportType = reportInfo?.reportType || ''
+    const date = moment(statusHistory.createdAt).format('MMMM DD, YYYY')
+
+    const reportTypes = () => {
+      if (reportType === 'assessment') {
+        return 'Initial Assessment Report'
+      } else if (reportType === 'progress') {
+        return 'Progress Report'
+      } else {
+        return 'Annual ISP Review'
+      }
+    }
+
+    return (
+      <Box marginLeft="4px">
+        <Text strong>{reportName}</Text>
+        {reportType && (
+          <>
+            <Text> - </Text>
+            <StyledReportTypeText type="secondary">{reportTypes()}</StyledReportTypeText>
+          </>
+        )}
+        <br />
+        <StyledTimelineMetaText type="secondary">{date}</StyledTimelineMetaText>
+        <Spacer value={1} />
+        {user?.role !== UserRole.USER && (
+          <StyledTimelineMetaText type="secondary">Generated By: {userName}</StyledTimelineMetaText>
+        )}
+      </Box>
+    )
+  }
+
+  return (
+    <Box>
+      <Text>Status Timeline</Text>
+      <Spacer value={24} />
+      <Timeline
+        items={statusHistories.map((statusHistory) => ({
+          children: getTimelineItemContent(statusHistory),
+        }))}
+      />
+      {hasMore && <StyledPaginationContainer ref={ref}>{loading ? <Spin /> : null}</StyledPaginationContainer>}
+    </Box>
+  )
+}

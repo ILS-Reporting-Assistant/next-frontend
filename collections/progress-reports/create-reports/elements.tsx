@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { maxTablet } from '@app/styles'
 import { TitleProps } from 'antd/es/typography/Title'
-import { Row, Title, Text, Link, Box, Button, List, Select, Tag, Input, TextArea, Modal } from '@app/components'
+import { Row, Title, Text, Link, Box, Button, List, Select, Tag, Input, TextArea, Modal, TipTap } from '@app/components'
 import {
   RowProps,
   TextProps,
@@ -14,6 +14,7 @@ import {
   InputProps,
   TextAreaProps,
   ModalProps,
+  TipTapProps,
 } from '@app/types'
 
 export const StyledContainer = styled((props: RowProps) => <Row {...props} />)`
@@ -22,7 +23,6 @@ export const StyledContainer = styled((props: RowProps) => <Row {...props} />)`
   width: 100%;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  padding: 12px;
   @media only screen and (max-width: ${maxTablet}) {
     min-height: 1vh;
   }
@@ -275,12 +275,12 @@ export const StyledSkillsSelect = styled((props: SelectProps<any>) => <Select {.
   width: 100%;
   margin-bottom: 23px;
 
-  && {
+  /* && {
     .ant-select-selector {
       height: 40px !important;
     }
-  }
-  .ant-select-selector {
+  } */
+  /* .ant-select-selector {
     color: #232323;
     font-size: 14px;
     height: 40px;
@@ -293,11 +293,11 @@ export const StyledSkillsSelect = styled((props: SelectProps<any>) => <Select {.
   .ant-select-selection-placeholder {
     color: #232323;
     font-size: 14px;
-    line-height: 100%;
+    line-height: 14px;
     font-weight: 400;
     font-style: normal;
     height: 40px;
-  }
+  } */
 `
 
 export const StyledPopularSkillsLabel = styled((props: TextProps) => <Text {...props} />)`
@@ -480,10 +480,6 @@ export const StyledUploadBox = styled((props: BoxProps) => <Box {...props} />)`
   cursor: pointer;
   transition: background-color 0.3s;
   width: 100%;
-
-  &:hover {
-    background: #f0f0f0;
-  }
 `
 
 export const StyledUploadIcon = styled((props: BoxProps) => <Box {...props} />)`
@@ -518,6 +514,7 @@ export const StyledUploadedFileContainer = styled((props: BoxProps) => <Box {...
   padding: 22px 12px;
   background: #fafafa;
   border-radius: 4px;
+  border: 1px solid #d9d9d9;
 `
 
 export const StyledUploadedFileName = styled((props: TextProps) => <Text {...props} />)`
@@ -672,8 +669,12 @@ export const StyledCheckCircle = styled((props: BoxProps & { completed: boolean 
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: ${(props) => (props.completed ? '#52c41a' : 'transparent')};
-  border: 2px solid ${(props) => (props.completed ? '#52c41a' : '#232323')};
+  background: ${(props) => {
+    return props.completed ? '#52c41a' : 'transparent'
+  }};
+  border: ${(props) => {
+    return props.completed ? '2px solid #52c41a' : '2px solid #232323'
+  }};
   position: relative;
   overflow: visible;
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -851,7 +852,7 @@ export const StyledReportContentLabelWrapper = styled((props: BoxProps) => <Box 
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 18px;
+  padding-bottom: 8px;
 `
 
 export const StyledReportContentLabel = styled((props: TextProps) => <Text {...props} />)`
@@ -889,7 +890,9 @@ export const StyledReportContentTextArea = styled((props: TextAreaProps) => <Tex
     }
   }
 `
-
+export const StyledButton = styled((props: ButtonProps) => <Button {...props} />)`
+  margin: 0px 8px;
+`
 export const StyledFullscreenButton = styled((props: ButtonProps) => <Button {...props} />)`
   background: white;
   border: 1px solid #d9d9d9;
@@ -1150,5 +1153,30 @@ export const StyledFullscreenModal = styled((props: ModalProps) => {
       max-width: 1400px !important;
       top: 20px !important;
     }
+  }
+`
+
+export const StyledReadOnlyTipTap = styled((props: TipTapProps) => <TipTap {...props} />)`
+  background-color: #f5f5f5;
+  cursor: default;
+
+  .tiptap-editor {
+    background-color: #f5f5f5;
+    cursor: default;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+`
+
+export const StyledFullscreenReadOnlyTipTap = styled((props: TipTapProps) => <TipTap {...props} />)`
+  background-color: #f5f5f5;
+  cursor: default;
+  min-height: 400px;
+
+  .tiptap-editor {
+    background-color: #f5f5f5;
+    cursor: default;
+    max-height: 500px;
+    overflow-y: auto;
   }
 `

@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { Box, Button, Dropdown, Icon, Modal, Notification, Spacer, Table, Text, Title } from '@app/components'
 import React, { useCallback, useEffect, useState } from 'react'
 import { StyledFlexContainer, StyledSearch, StyledClientAvatar } from './elements'
@@ -5,8 +6,10 @@ import { Client } from '@app/types'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
 import { AddClient } from './AddClient'
+import { EditClient } from './EditClient'
+import { ViewClient } from './ViewClient'
 import { clientsService, extractErrorMessage } from '@app/services'
-import { isValidationError } from '@app/utils'
+import { getAvatarText, getClientName, isValidationError } from '@app/utils'
 import moment from 'moment'
 
 export const Clients = () => {
@@ -20,6 +23,10 @@ export const Clients = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false)
+  const [viewDrawerOpen, setViewDrawerOpen] = useState(false)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const [viewingClient, setViewingClient] = useState<Client | null>(null)
 
   const organizationId = user.currentOrganizationId
 
@@ -71,31 +78,19 @@ export const Clients = () => {
     return moment(dateString).format('MM-DD-YYYY')
   }
 
-  const getClientName = (client: Client) => {
-    return `${client.firstName || ''} ${client.lastName || ''}`.trim() || '-'
-  }
-
-  const getAvatarText = (client: Client) => {
-    const firstName = client.firstName || ''
-    const lastName = client.lastName || ''
-    const firstLetter = firstName ? firstName.charAt(0).toUpperCase() : ''
-    const lastLetter = lastName ? lastName.charAt(0).toUpperCase() : ''
-
-    if (firstLetter && lastLetter) {
-      return `${firstLetter}${lastLetter}`
-    }
-    if (firstLetter) {
-      return firstLetter
-    }
-    if (lastLetter) {
-      return lastLetter
-    }
-    return 'C'
-  }
-
   const openModal = (client: Client) => {
     setSelectedClient(client)
     setModalOpen(true)
+  }
+
+  const openEditDrawer = (client: Client) => {
+    setEditingClient(client)
+    setEditDrawerOpen(true)
+  }
+
+  const openViewDrawer = (client: Client) => {
+    setViewingClient(client)
+    setViewDrawerOpen(true)
   }
 
   const closeModal = () => {
@@ -176,6 +171,16 @@ export const Clients = () => {
       render: (_: any, record: Client) => {
         const items = [
           {
+            key: 'view',
+            label: 'View',
+            onClick: () => openViewDrawer(record),
+          },
+          {
+            key: 'edit',
+            label: 'Edit',
+            onClick: () => openEditDrawer(record),
+          },
+          {
             key: 'delete',
             label: 'Delete',
             danger: true,
@@ -195,6 +200,8 @@ export const Clients = () => {
   return (
     <Box>
       <AddClient open={open} setOpen={setOpen} onSuccess={fetchData} />
+      <EditClient open={editDrawerOpen} setOpen={setEditDrawerOpen} client={editingClient} onSuccess={fetchData} />
+      <ViewClient open={viewDrawerOpen} setOpen={setViewDrawerOpen} client={viewingClient} />
       <StyledFlexContainer>
         <Title level={2}>Clients</Title>
         <Button onClick={() => setOpen(true)}>Add Client</Button>

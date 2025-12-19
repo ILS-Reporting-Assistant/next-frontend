@@ -1,25 +1,25 @@
-import { Box, Icon, ReactQuill, Upload } from '@app/components'
-import React, { useState, useEffect } from 'react'
+import { Box, Button, Icon, TipTap, Upload } from '@app/components'
 import { UploadFile } from '@app/types'
+import { useReportEditor } from '@app/hooks'
+import React, { useEffect, useState } from 'react'
 import {
-  StyledStep3Heading,
-  StyledStep3Description,
   StyledDailyNotesHeading,
+  StyledEditorWrapper,
+  StyledFileTypesText,
   StyledOrDivider,
   StyledOrText,
-  StyledUploadWrapper,
+  StyledPaperClipIcon,
+  StyledReportContentTextArea,
+  StyledStep3ContentWrapper,
+  StyledStep3Description,
+  StyledStep3Heading,
   StyledUploadBox,
+  StyledUploadedFileContainer,
+  StyledUploadedFileName,
   StyledUploadIcon,
   StyledUploadIconInner,
   StyledUploadText,
-  StyledFileTypesText,
-  StyledUploadedFileContainer,
-  StyledUploadedFileName,
-  StyledDeleteIcon,
-  StyledDeleteIconInner,
-  StyledPaperClipIcon,
-  StyledEditorWrapper,
-  StyledStep3ContentWrapper,
+  StyledUploadWrapper,
 } from './elements'
 import { UploadDocumentProps } from './types'
 
@@ -32,6 +32,18 @@ export const UploadDocument = ({
   const [uploadedFile, setUploadedFile] = useState<UploadFile | null>(propUploadedFile || null)
   const [editorContent, setEditorContent] = useState<string>(propNotes || '')
 
+  // Main editor for the regular view
+  const { editor } = useReportEditor({
+    content: editorContent || '',
+    editable: true,
+    onUpdate: (markdown) => {
+      setEditorContent(markdown)
+      if (onNotesChange) {
+        onNotesChange(markdown)
+      }
+    },
+  })
+
   // Sync with prop changes
   useEffect(() => {
     setUploadedFile(propUploadedFile || null)
@@ -41,42 +53,12 @@ export const UploadDocument = ({
     setEditorContent(propNotes || '')
   }, [propNotes])
 
-  // Helper function to extract plain text from HTML
-  const extractPlainText = (html: string): string => {
-    // Use DOM API if available (browser environment)
-    if (typeof document !== 'undefined') {
-      try {
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = html
-        return (tempDiv.textContent || tempDiv.innerText || '').trim()
-      } catch {
-        // Fall through to regex method
-      }
-    }
-    // Fallback: use regex to strip HTML tags (works in SSR and as fallback)
-    return html
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .trim()
-  }
-
-  const handleEditorChange = (content: string) => {
-    setEditorContent(content)
-    if (onNotesChange) {
-      onNotesChange(extractPlainText(content))
-    }
-  }
-
   const handleFileChange = (info: any) => {
     const { fileList } = info
     if (fileList.length > 0) {
       const file = fileList[0]
       // Check file type
-      const allowedTypes = ['.txt', '.doc', '.docx', '.md', '.pdf']
+      const allowedTypes = ['.txt', '.doc', '.docx', '.md', '.pdf', '.png', '.jpeg', '.jpg']
       const fileName = file.name || ''
       const fileExtension = '.' + fileName.split('.').pop()?.toLowerCase()
 
@@ -119,77 +101,53 @@ export const UploadDocument = ({
         <Box>
           <StyledDailyNotesHeading>Daily Notes & Observations</StyledDailyNotesHeading>
           <StyledEditorWrapper>
-            <ReactQuill
-              theme="snow"
-              value={editorContent}
-              onChange={handleEditorChange}
-              placeholder="Paste your daily notes, shift summaries, or observations here. Don't worry about formatting - I'll organize everything by skill area and create a professional narrative."
-              modules={{
-                toolbar: [
-                  [{ header: [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ color: [] }, { background: [] }],
-                  [{ align: [] }],
-                  ['link', 'image', 'video'],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  ['code-block'],
-                  // ['clean']
-                ],
-              }}
-              formats={[
-                'header',
-                'bold',
-                'italic',
-                'underline',
-                'strike',
-                'color',
-                'background',
-                'align',
-                'link',
-                'image',
-                'video',
-                'list',
-                'bullet',
-                'code-block',
-              ]}
-            />
+            {uploadedFile ? (
+              <StyledReportContentTextArea
+                rows={10}
+                readOnly
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'default' }}
+              />
+            ) : (
+              <TipTap editor={editor} value={editorContent} showToolbar={true} />
+            )}
           </StyledEditorWrapper>
           <StyledOrDivider>
             <StyledOrText>Or</StyledOrText>
           </StyledOrDivider>
 
           <StyledUploadWrapper>
-            <Upload
-              beforeUpload={beforeUpload}
-              onChange={handleFileChange}
-              fileList={uploadedFile ? [uploadedFile] : []}
-              showUploadList={false}
-              accept=".txt,.doc,.docx,.md,.pdf"
-              maxCount={1}
-            >
-              <StyledUploadBox>
-                <StyledUploadIcon>
-                  <StyledUploadIconInner>
-                    <Icon.UploadOutlined />
-                  </StyledUploadIconInner>
-                </StyledUploadIcon>
-                <StyledUploadText>Upload Document</StyledUploadText>
-                <StyledFileTypesText>.txt, .doc, .docx, .md, .pdf file types only</StyledFileTypesText>
-              </StyledUploadBox>
-            </Upload>
-
-            {uploadedFile && (
+            {uploadedFile ? (
               <StyledUploadedFileContainer>
                 <StyledPaperClipIcon>
                   <Icon.PaperClipOutlined />
                 </StyledPaperClipIcon>
-                <StyledUploadedFileName>{uploadedFile.name}</StyledUploadedFileName>
-                <StyledDeleteIcon onClick={handleRemoveFile}>
-                  <StyledDeleteIconInner>
-                    <Icon.DeleteOutlined />
-                  </StyledDeleteIconInner>
-                </StyledDeleteIcon>
+                <StyledUploadedFileName>{uploadedFile?.name}</StyledUploadedFileName>
+                <Button danger onClick={handleRemoveFile}>
+                  Remove
+                </Button>
               </StyledUploadedFileContainer>
+            ) : (
+              <Upload
+                beforeUpload={beforeUpload}
+                onChange={handleFileChange}
+                fileList={uploadedFile ? [uploadedFile] : []}
+                showUploadList={false}
+                accept=".png,.jpeg,.jpg,.txt,.doc,.docx,.md,.pdf"
+                maxCount={1}
+              >
+                <StyledUploadBox>
+                  <StyledUploadIcon>
+                    <StyledUploadIconInner>
+                      <Icon.UploadOutlined />
+                    </StyledUploadIconInner>
+                  </StyledUploadIcon>
+                  <StyledUploadText>Upload Document</StyledUploadText>
+                  <StyledFileTypesText>
+                    .png, .jpeg, .jpg, .txt, .doc, .docx, .md, .pdf file types only
+                  </StyledFileTypesText>
+                </StyledUploadBox>
+              </Upload>
             )}
           </StyledUploadWrapper>
         </Box>

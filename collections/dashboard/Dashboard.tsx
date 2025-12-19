@@ -16,9 +16,12 @@ import {
   StyledWelcomeTitle,
 } from './elements'
 import { useRouter } from 'next/router'
+import { useSelector } from 'react-redux'
+import { IStore } from '@app/redux'
 
 export const Dashboard = () => {
   const router = useRouter()
+  const { user } = useSelector((state: IStore) => state)
   const cardsData: DashboardCardData[] = [
     {
       icon: (
@@ -29,7 +32,7 @@ export const Dashboard = () => {
       title: 'Initial Assessment Report',
       description: 'New client intake and initial service planning.',
       buttonText: 'Create New Report',
-      buttonClick: '/assessment-reports',
+      buttonClick: '/assessment-reports/create-reports',
     },
     {
       icon: (
@@ -40,7 +43,7 @@ export const Dashboard = () => {
       title: 'Progress Report',
       description: 'Ongoing service update including growth, goals, and support needs.',
       buttonText: 'Create New Report',
-      buttonClick: '/progress-reports',
+      buttonClick: '/progress-reports/create-reports',
     },
     {
       icon: (
@@ -51,7 +54,7 @@ export const Dashboard = () => {
       title: 'Annual ISP Review',
       description: 'Comprehensive yearly assessment and planning.',
       buttonText: 'Create New Report',
-      buttonClick: '/isp-reviews',
+      buttonClick: '/isp-reviews/create-reports',
     },
     {
       icon: (
@@ -113,7 +116,7 @@ export const Dashboard = () => {
 
   return (
     <Box>
-      <StyledWelcomeTitle level={1}>Welcome, John!</StyledWelcomeTitle>
+      <StyledWelcomeTitle level={1}>Welcome, {user?.firstName || user?.email?.split('@')?.[0]}!</StyledWelcomeTitle>
       <StyledText>What kind of report are we working on today?</StyledText>
       <Spacer value={8} />
       <Spacer value={24} />

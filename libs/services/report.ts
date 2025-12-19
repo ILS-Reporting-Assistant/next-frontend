@@ -6,7 +6,15 @@ import {
   SaveReportPayload,
   SaveReportResponse,
 } from '../types/collections/create-reports'
-import { ReportsListQuery, ReportsListResponse, Report } from '../types/api/reports'
+import {
+  ReportsListQuery,
+  ReportsListResponse,
+  Report,
+  ReportsByClientQuery,
+  ReportsByClientResponse,
+} from '../types/api/reports'
+import { store } from '@app/redux'
+import { processSSEResponse } from '../utils'
 
 export const reportService = {
   async uploadDocument(
@@ -15,6 +23,7 @@ export const reportService = {
     selectedSkills?: string[],
     clientId?: string,
     notes?: string,
+    onProgress?: (progress: { stage: string; message: string; progress?: number }) => void,
   ): Promise<GenerateAssessmentReportResponse> {
     const formData = new FormData()
 
@@ -36,11 +45,24 @@ export const reportService = {
       formData.append('notes', notes)
     }
 
-    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
-      ENDPOINT.REPORTS.GENERATE_ASSESSMENT_REPORT,
-      formData,
-    )
-    return data.data
+    // Get access token from store
+    const { accessToken } = store.getState().user
+
+    const response = await fetch(`${httpClient.defaults.baseURL}${ENDPOINT.REPORTS.GENERATE_ASSESSMENT_REPORT}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(errorData.message || 'Failed to generate report')
+    }
+
+    return processSSEResponse(response, onProgress)
   },
   async uploadProgressDocument(
     file?: File,
@@ -48,6 +70,7 @@ export const reportService = {
     selectedSkills?: string[],
     clientId?: string,
     notes?: string,
+    onProgress?: (progress: { stage: string; message: string; progress?: number }) => void,
   ): Promise<GenerateAssessmentReportResponse> {
     const formData = new FormData()
 
@@ -69,11 +92,24 @@ export const reportService = {
       formData.append('notes', notes)
     }
 
-    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
-      ENDPOINT.REPORTS.GENERATE_PROGRESS_REPORT,
-      formData,
-    )
-    return data.data
+    // Get access token from store
+    const { accessToken } = store.getState().user
+
+    const response = await fetch(`${httpClient.defaults.baseURL}${ENDPOINT.REPORTS.GENERATE_PROGRESS_REPORT}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(errorData.message || 'Failed to generate report')
+    }
+
+    return processSSEResponse(response, onProgress)
   },
   async uploadIspDocument(
     file?: File,
@@ -81,6 +117,7 @@ export const reportService = {
     selectedSkills?: string[],
     clientId?: string,
     notes?: string,
+    onProgress?: (progress: { stage: string; message: string; progress?: number }) => void,
   ): Promise<GenerateAssessmentReportResponse> {
     const formData = new FormData()
 
@@ -102,11 +139,24 @@ export const reportService = {
       formData.append('notes', notes)
     }
 
-    const { data } = await httpClient.post<ApiResponse<GenerateAssessmentReportResponse>>(
-      ENDPOINT.REPORTS.GENERATE_ISP_REPORT,
-      formData,
-    )
-    return data.data
+    // Get access token from store
+    const { accessToken } = store.getState().user
+
+    const response = await fetch(`${httpClient.defaults.baseURL}${ENDPOINT.REPORTS.GENERATE_ISP_REPORT}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(errorData.message || 'Failed to generate report')
+    }
+
+    return processSSEResponse(response, onProgress)
   },
   async generateDocument(content: string): Promise<Blob> {
     const response = await httpClient.post<Blob>(
@@ -166,6 +216,12 @@ export const reportService = {
         reportType,
       },
     )
+    return data.data
+  },
+  async getReportsByClientId(clientId: string, query?: ReportsByClientQuery): Promise<ReportsByClientResponse> {
+    const { data } = await httpClient.get<ApiResponse<ReportsByClientResponse>>(ENDPOINT.REPORTS.BY_CLIENT(clientId), {
+      params: query,
+    })
     return data.data
   },
 }

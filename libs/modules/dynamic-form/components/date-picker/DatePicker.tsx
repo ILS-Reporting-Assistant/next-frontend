@@ -10,6 +10,7 @@ export const DFDatePicker: React.FC<DynamicInputProps> = ({ field, disabled }) =
         style={{ width: '100%' }}
         format="YYYY/MM/DD"
         disabled={disabled || field.disabled}
+        popupStyle={{ height: '250px' }}
       />
     </FormItem>
   )

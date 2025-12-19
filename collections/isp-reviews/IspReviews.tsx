@@ -7,6 +7,7 @@ import { IStore } from '@app/redux'
 import { useState, useEffect, useCallback } from 'react'
 import { reportService, clientsService, extractErrorMessage } from '@app/services'
 import { isValidationError, getFullName, getAvatarText } from '@app/utils'
+import { useDownloadReport } from '@app/hooks'
 import { Report, ReportsListQuery, Client } from '@app/types'
 import { ReportType } from '@app/enums'
 import moment from 'moment'
@@ -24,6 +25,11 @@ export const IspReviews = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
+  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null)
+
+  const { downloadDocx, downloadPdf, isDownloadingDocx, isDownloadingPdf } = useDownloadReport({
+    showSuccessNotification: true,
+  })
 
   const organizationId = user.currentOrganizationId
 
@@ -90,13 +96,24 @@ export const IspReviews = () => {
     setSelectedClientId(undefined)
   }, [organizationId])
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+  const handleDownloadDocx = async (report: Report) => {
+    if (!report.content) return
+
+    setDownloadingReportId(report._id)
+    await downloadDocx(report.content, report.reportName || 'isp-review')
+    setDownloadingReportId(null)
   }
 
-  const handleClientChange = (value: string) => {
-    setSelectedClientId(value || undefined)
-    setCurrentPage(1)
+  const handleDownloadPdf = async (report: Report) => {
+    if (!report.content) return
+
+    setDownloadingReportId(report._id)
+    await downloadPdf(report.content, report.reportName || 'isp-review')
+    setDownloadingReportId(null)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
   const formatDate = (dateString?: string) => {
@@ -123,13 +140,6 @@ export const IspReviews = () => {
       return getAvatarText(report.clientId as { firstName?: string; lastName?: string })
     }
     return 'A'
-  }
-
-  const getClientOptions = () => {
-    return clients.map((client) => ({
-      value: client._id,
-      label: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email || '-',
-    }))
   }
 
   const openModal = (report: Report) => {
@@ -210,33 +220,74 @@ export const IspReviews = () => {
       title: 'Actions',
       key: 'actions',
       render: (_: any, record: Report) => {
+        const isDownloading = downloadingReportId === record._id && (isDownloadingDocx || isDownloadingPdf)
+
         const handleMenuClick = ({ key }: { key: string }) => {
           if (key === '1') {
             // View action
             router.push(`${ROUTE.VIEW_ISP_REVIEW}?reportId=${record._id}`)
-          } else if (key === '2') {
-            // Download action - implement if needed
-            // TODO: Implement download functionality
+          } else if (key === '2-docx') {
+            // Download DOCX
+            handleDownloadDocx(record)
+          } else if (key === '2-pdf') {
+            // Download PDF
+            handleDownloadPdf(record)
           } else if (key === '3') {
-            // Delete action - implement if needed
-            // TODO: Implement delete functionality
+            // Delete action
+            openModal(record)
           }
         }
 
         const items = [
-          { key: '1', label: 'View' },
-          { key: '2', label: 'Download' },
+          { key: '1', label: 'View', icon: <Icon.EyeOutlined /> },
           {
-            key: '3',
-            label: 'Delete',
-            danger: true,
-            onClick: () => openModal(record),
+            key: '2',
+            label: 'Download',
+            icon: <Icon.DownloadOutlined />,
+            disabled: isDownloading,
+            children: [
+              {
+                key: '2-docx',
+                label:
+                  isDownloadingDocx && downloadingReportId === record._id ? 'Downloading...' : 'Word Document (.docx)',
+                icon:
+                  isDownloadingDocx && downloadingReportId === record._id ? (
+                    <Icon.LoadingOutlined />
+                  ) : (
+                    <Icon.FileWordOutlined />
+                  ),
+                disabled: isDownloading,
+              },
+              {
+                key: '2-pdf',
+                label: isDownloadingPdf && downloadingReportId === record._id ? 'Downloading...' : 'PDF (.pdf)',
+                icon:
+                  isDownloadingPdf && downloadingReportId === record._id ? (
+                    <Icon.LoadingOutlined />
+                  ) : (
+                    <Icon.FilePdfOutlined />
+                  ),
+                disabled: isDownloading,
+              },
+            ],
           },
+          // {
+          //   key: '3',
+          //   label: 'Delete',
+          //   danger: true,
+          //   icon: <Icon.DeleteOutlined />,
+          // },
         ]
 
         return (
           <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={['click']}>
-            <Icon.EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+            <Box display="flex" alignItems="center" style={{ cursor: 'pointer' }}>
+              {isDownloading ? (
+                <Icon.LoadingOutlined style={{ fontSize: 20 }} />
+              ) : (
+                <Icon.EllipsisOutlined style={{ fontSize: 20 }} />
+              )}
+            </Box>
           </Dropdown>
         )
       },
@@ -252,7 +303,7 @@ export const IspReviews = () => {
       <Spacer value={16} />
       <Box display="flex">
         <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />
-        <Select
+        {/* <Select
           marginLeft="16px"
           showSearch
           placeholder="Select a client"
@@ -266,7 +317,7 @@ export const IspReviews = () => {
             const label = String(option?.label ?? '')
             return label.toLowerCase().includes(input.toLowerCase())
           }}
-        />
+        /> */}
       </Box>
       <Spacer value={24} />
       <Table
