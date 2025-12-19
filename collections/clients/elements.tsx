@@ -1,6 +1,6 @@
-import { FlexContainer, Input, Tag } from '@app/components'
-import { FlexContainerProps, InputProps, TagProps, StyledAvatarProps } from '@app/types'
-import { Avatar as AntAvatar, Form } from 'antd'
+import { FlexContainer, Input, Tag, Text, Box, Card } from '@app/components'
+import { FlexContainerProps, InputProps, TagProps, StyledAvatarProps, CardProps, BoxProps, TextProps } from '@app/types'
+import { Avatar as AntAvatar, Badge, Form } from 'antd'
 import styled from 'styled-components'
 
 export const StyledFlexContainer = styled((props: FlexContainerProps) => <FlexContainer {...props} />)`
@@ -76,3 +76,90 @@ export const StyledForm = styled(Form)`
   }
 `
 
+export const StyledViewContainer = styled(Box)`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`
+
+export const StyledFieldContainer = styled(Box)`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`
+
+export const StyledLabel = styled(Text)`
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+`
+
+export const StyledValue = styled(Text)`
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
+`
+export const StyledCard = styled((props: CardProps) => <Card {...props} />)`
+  border-radius: 12px;
+`
+
+export const Header = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+`
+
+export const Footer = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  gap: 8px;
+`
+
+export const Title = styled((props: TextProps) => <Text {...props} />)`
+  margin: 0;
+  padding-right: 8px;
+  font-size: 14px;
+  font-weight: 600;
+`
+
+export const DateText = styled((props: TextProps) => <Text {...props} />)`
+  font-size: 12px;
+  color: #8c8c8c;
+`
+
+export const UserName = styled((props: TextProps) => <Text {...props} />)`
+  font-size: 14px;
+  font-weight: 300;
+`
+
+export const StyledLoadingContainer = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+`
+
+export const StyledEmptyStateContainer = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+`
+
+export const StyledReportTypeText = styled((props: TextProps) => <Text {...props} />)`
+  text-transform: capitalize;
+`
+
+export const StyledTimelineMetaText = styled((props: TextProps) => <Text {...props} />)`
+  font-size: 12px;
+`
+
+export const StyledPaginationContainer = styled(Box)`
+  display: flex;
+  justify-content: center;
+`
+
+export const StyledBadgeRibbon = styled(Badge.Ribbon)`
+  text-transform: capitalize;
+`

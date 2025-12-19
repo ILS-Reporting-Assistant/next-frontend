@@ -1,13 +1,17 @@
 export const popularSkills = [
   'Cooking',
-  'Menu Planning',
-  'Meal Prep',
   'Cleaning',
-  'Shopping in natural environment',
-  'Self-advocacy training',
-  'Personal hygiene',
-  'Money Management',
-  'Use of public transportation',
+  'Shopping',
+  'Menu Planning',
+  'Meal Preparation',
+  'Money Management and budgeting',
+  'Use of Public Transportation',
+  'Personal Health and Hygiene',
+  'Self-Advocacy',
+  'Independent Recreation and Participation',
+  'Use of Medical and Dental Services',
+  'Community Resource Awareness',
+  'Home and Community Safety',
 ]
 
 export const dummySkills = [
@@ -26,4 +30,3 @@ export const dummySkills = [
   'Communication',
   'Social Skills',
 ]
-

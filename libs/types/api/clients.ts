@@ -52,6 +52,8 @@ export interface UpdateClientPayload {
   email?: string
   startDate?: string
   endDate?: string
+  userId: string
+  organizationId?: string | null
 }
 
 export interface UpdateClientResponse {
@@ -66,4 +68,3 @@ export interface UpdateClientResponse {
   createdAt: string
   updatedAt: string
 }
-

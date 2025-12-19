@@ -24,7 +24,7 @@ export const clientsService = {
     return data
   },
 
-  async updateClient(organizationId: string, clientId: string, payload: UpdateClientPayload) {
+  async updateClient(clientId: string, payload: UpdateClientPayload & { userId: string }) {
     const { data } = await httpClient.put<ApiResponse<UpdateClientResponse>>(ENDPOINT.CLIENTS.UPDATE(clientId), payload)
     return data
   },

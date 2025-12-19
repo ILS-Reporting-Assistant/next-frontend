@@ -29,9 +29,12 @@ import {
 import { clientsService, reportService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
 import { ReportType } from '@app/enums'
+import { useRouter } from 'next/router'
+import { IStore } from '@app/redux'
 
-export const CreateAssessmentReports = () => {
-  const { user } = useSelector((state) => state)
+export const CreateIspReviews = () => {
+  const { user } = useSelector((state: IStore) => state)
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [showSuccess, setShowSuccess] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
@@ -43,9 +46,10 @@ export const CreateAssessmentReports = () => {
   const [reportContent, setReportContent] = useState('')
   const [originalContent, setOriginalContent] = useState('')
   const [fileId, setFileId] = useState(null)
-  const [reportName, setReportName] = useState('Initial Assessment Report')
+  const [reportName, setReportName] = useState('Annual ISP Review')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [apiSuccess, setApiSuccess] = useState(false)
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
@@ -53,7 +57,6 @@ export const CreateAssessmentReports = () => {
   // Fetch clients on mount
   useEffect(() => {
     const fetchClients = async () => {
-      //if (!organizationId) return
       setClientsLoading(true)
       try {
         const response = await clientsService.getOrganizationClients(organizationId, {
@@ -105,6 +108,9 @@ export const CreateAssessmentReports = () => {
       return
     }
 
+    // Show success animation immediately when button is clicked
+    setShowSuccess(true)
+
     // Notes are already plain text from UploadDocument component
     const notesText = notes || undefined
 
@@ -112,21 +118,27 @@ export const CreateAssessmentReports = () => {
     const file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
 
     setIsExtracting(true)
+    setApiSuccess(false)
     try {
       const clientId = selectedClient?._id || selectedClient?.id || null
-      const result = await reportService.uploadDocument(file, organizationId, selectedSkills, clientId, notesText)
+      const result = await reportService.uploadIspDocument(file, organizationId, selectedSkills, clientId, notesText)
       setReportContent(result.content)
       setOriginalContent(result.originalContent || '')
       setFileId(result.fileId || null)
-      setShowSuccess(true)
+      // When API call succeeds, set apiSuccess to true
+      setApiSuccess(true)
     } catch (error) {
       if (isValidationError(error)) return
+      // Hide success animation on error
+      setShowSuccess(false)
+      setApiSuccess(false)
       Notification({
         message: 'Failed to extract document',
         description: extractErrorMessage(error),
         type: 'error',
       })
     } finally {
+      // Set isExtracting to false when API response comes (success or error)
       setIsExtracting(false)
     }
   }, [uploadedFile, notes, organizationId, selectedSkills, selectedClient])
@@ -157,7 +169,7 @@ export const CreateAssessmentReports = () => {
       const payload = {
         organizationId: organizationId || undefined,
         clientId: selectedClient?._id,
-        reportType: ReportType.ASSESSMENT,
+        reportType: ReportType.ISP,
         reportName,
         fileId: fileId || undefined,
         originalContent,
@@ -171,18 +183,18 @@ export const CreateAssessmentReports = () => {
         type: 'success',
       })
       // Navigate to first step after successful save
-      setCurrentStep(1)
+      // setCurrentStep(1)
       setShowSuccess(false)
       // Reset form state
       setReportContent('')
       setOriginalContent('')
       setFileId(null)
-      setReportName('Initial Assessment Report')
+      setReportName('Annual ISP Review')
       setUploadedFile(null)
       setNotes('')
       setSelectedSkills([])
       setSelectedClient(null)
-      return result
+      router.push('/isp-reviews')
     } catch (error) {
       if (isValidationError(error)) return
       Notification({
@@ -235,7 +247,7 @@ export const CreateAssessmentReports = () => {
 
   const renderStepContent = () => {
     if (showSuccess) {
-      return <Success onComplete={handleSuccessComplete} />
+      return <Success onComplete={handleSuccessComplete} isExtracting={isExtracting} apiSuccess={apiSuccess} />
     }
 
     switch (currentStep) {
@@ -270,7 +282,7 @@ export const CreateAssessmentReports = () => {
             onSaveReport={handleSaveReport}
             isSaving={isSaving}
             originalContent={originalContent}
-            reportType={ReportType.ASSESSMENT}
+            reportType={ReportType.ISP}
           />
         )
       default:
@@ -282,7 +294,7 @@ export const CreateAssessmentReports = () => {
     <Fragment>
       <StyledContainer>
         <StyledContentWrapper>
-          <StyledBackLink href={ROUTE.ASSESSMENT_REPORTS}>
+          <StyledBackLink href={ROUTE.ISP_REVIEWS}>
             <StyledBackIcon>
               <StyledBackIconInner>
                 <Icon.LeftOutlined />
@@ -291,7 +303,7 @@ export const CreateAssessmentReports = () => {
             Back to Reports
           </StyledBackLink>
 
-          <StyledProgressTitle level={2}>Initial Assessment Report</StyledProgressTitle>
+          <StyledProgressTitle level={2}>Annual ISP Review</StyledProgressTitle>
 
           {!showSuccess && (
             <StyledProgressBarWrapper>

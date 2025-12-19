@@ -1,6 +1,6 @@
 import 'antd/dist/reset.css'
 
-import { App, Content, Icon, If, Layout, Sider, SiderMenu } from '@app/components'
+import { App, Content, Icon, If, Layout, Sider, SiderMenu, Tooltip } from '@app/components'
 import { ROUTE } from '@app/data'
 import { changeDynamicTheme, IStore, logout, persistor, store } from '@app/redux'
 import { GlobalStyles } from '@app/styles'
@@ -133,20 +133,19 @@ function Main({ Component, pageProps }: AppProps) {
                     theme={'dark'}
                     collapsible={route === '/chat' ? false : true}
                     onCollapse={(value) => updateSidebar(value)}
-                    // trigger={
-                    //   <>
-                    //     {isCollapsed ? (
-                    //       <Tooltip title={'Open Navigation'} placement="right">
-                    //         <Icon.RightSquareOutlined style={{ color: '#000' }} />
-                    //       </Tooltip>
-                    //     ) : (
-                    //       <Tooltip title={'Collapse Navigation'} placement="right">
-                    //         <Icon.LeftSquareOutlined style={{ color: '#000' }} />
-                    //       </Tooltip>
-                    //     )}
-                    //   </>
-                    // }
-                    trigger={null}
+                    trigger={
+                      <>
+                        {isCollapsed ? (
+                          <Tooltip title={'Open Navigation'} placement="right">
+                            <Icon.RightSquareOutlined />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title={'Collapse Navigation'} placement="right">
+                            <Icon.LeftSquareOutlined />
+                          </Tooltip>
+                        )}
+                      </>
+                    }
                     collapsed={isCollapsed}
                   >
                     <SiderMenu

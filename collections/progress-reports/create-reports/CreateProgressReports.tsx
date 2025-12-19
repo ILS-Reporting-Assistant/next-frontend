@@ -29,9 +29,12 @@ import {
 import { clientsService, reportService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
 import { ReportType } from '@app/enums'
+import { useRouter } from 'next/router'
+import { IStore } from '@app/redux'
 
 export const CreateProgressReports = () => {
-  const { user } = useSelector((state) => state)
+  const { user } = useSelector((state: IStore) => state)
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [showSuccess, setShowSuccess] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
@@ -46,6 +49,7 @@ export const CreateProgressReports = () => {
   const [reportName, setReportName] = useState('Progress Report')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [apiSuccess, setApiSuccess] = useState(false)
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
@@ -104,6 +108,8 @@ export const CreateProgressReports = () => {
       return
     }
 
+    setShowSuccess(true)
+
     // Notes are already plain text from UploadDocument component
     const notesText = notes || undefined
 
@@ -111,6 +117,7 @@ export const CreateProgressReports = () => {
     const file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
 
     setIsExtracting(true)
+    setApiSuccess(false)
     try {
       const clientId = selectedClient?._id || selectedClient?.id || null
       const result = await reportService.uploadProgressDocument(
@@ -123,9 +130,11 @@ export const CreateProgressReports = () => {
       setReportContent(result.content)
       setOriginalContent(result.originalContent || '')
       setFileId(result.fileId || null)
-      setShowSuccess(true)
+      setApiSuccess(true)
     } catch (error) {
       if (isValidationError(error)) return
+      setShowSuccess(false)
+      setApiSuccess(false)
       Notification({
         message: 'Failed to extract document',
         description: extractErrorMessage(error),
@@ -145,8 +154,6 @@ export const CreateProgressReports = () => {
       })
       return
     }
-
-    // fileId is optional now (can be null if notes were used instead of file)
 
     if (!reportName || !reportContent) {
       Notification({
@@ -176,7 +183,7 @@ export const CreateProgressReports = () => {
         type: 'success',
       })
       // Navigate to first step after successful save
-      setCurrentStep(1)
+      // setCurrentStep(1)
       setShowSuccess(false)
       // Reset form state
       setReportContent('')
@@ -187,7 +194,7 @@ export const CreateProgressReports = () => {
       setNotes('')
       setSelectedSkills([])
       setSelectedClient(null)
-      return result
+      router.push('/progress-reports')
     } catch (error) {
       if (isValidationError(error)) return
       Notification({
@@ -240,7 +247,7 @@ export const CreateProgressReports = () => {
 
   const renderStepContent = () => {
     if (showSuccess) {
-      return <Success onComplete={handleSuccessComplete} />
+      return <Success onComplete={handleSuccessComplete} isExtracting={isExtracting} apiSuccess={apiSuccess} />
     }
 
     switch (currentStep) {

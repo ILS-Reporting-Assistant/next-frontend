@@ -1,105 +1,71 @@
-import { Box, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
+import { useDownloadReport, useReportEditor } from '@app/hooks'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
 import { ROUTE } from '@app/data'
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-import { extractErrorMessage, reportService } from '@app/services'
+import { ViewAssessmentReportProps } from '@app/types'
 import {
+  StyledBackIcon,
+  StyledBackIconInner,
+  StyledBackLink,
+  StyledButton,
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
-  StyledCopyButton,
+  StyledContainer,
+  StyledContentWrapper,
   StyledCopyDownloadContainer,
-  StyledDownloadButton,
-  StyledFinalReportHeading,
-  StyledFullscreenButton,
   StyledFullscreenModal,
   StyledFullscreenModalContent,
-  StyledFullscreenReportContent,
+  StyledFullscreenReadOnlyTipTap,
   StyledFullscreenReportName,
   StyledGoBackButton,
   StyledIconWithRightMargin,
+  StyledReadOnlyTipTap,
   StyledReportContentLabel,
   StyledReportContentLabelWrapper,
-  StyledReportContentTextArea,
   StyledReportContentWrapper,
   StyledReportNameInput,
   StyledReportNameLabel,
   StyledStep4ReviewContentWrapper,
   StyledStep4ReviewDescription,
   StyledStep4ReviewHeading,
-  StyledBackLink,
-  StyledBackIcon,
-  StyledBackIconInner,
-  StyledContainer,
-  StyledContentWrapper,
 } from 'collections/progress-reports/create-reports/elements'
-import { ViewAssessmentReportProps } from '@app/types'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
 
 export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
   const router = useRouter()
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
-  const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
-  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
+
+  const { downloadDocx, downloadPdf, isDownloadingDocx, isDownloadingPdf } = useDownloadReport()
 
   const reportName = report?.reportName || ''
   const reportContent = report?.content || ''
 
-  const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(reportContent)
-    Notification({
-      message: 'Copied to clipboard',
-      type: 'success',
-    })
-  }
+  // Main editor for the regular view
+  const { editor, handleCopyToClipboard } = useReportEditor({
+    content: reportContent || '',
+    editable: false,
+    enableCopyToClipboard: true,
+  })
+
+  // Separate editor for the fullscreen modal
+  const { editor: fullscreenEditor } = useReportEditor({
+    content: reportContent || '',
+    editable: false,
+  })
 
   const handleDownloadDocx = async () => {
     if (!reportContent) return
-
-    setIsDownloadingDocx(true)
-    try {
-      const blob = await reportService.generateDocument(reportContent)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${reportName || 'assessment-report'}.docx`
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      Notification({
-        message: 'Failed to download report',
-        description: extractErrorMessage(error as Error),
-        type: 'error',
-      })
-    } finally {
-      setIsDownloadingDocx(false)
-    }
+    await downloadDocx(reportContent, reportName || 'assessment-report')
   }
 
   const handleDownloadPdf = async () => {
     if (!reportContent) return
-
-    setIsDownloadingPdf(true)
-    try {
-      const blob = await reportService.generatePDFDocument(reportContent)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${reportName || 'assessment-report'}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      Notification({
-        message: 'Failed to download report',
-        description: extractErrorMessage(error as Error),
-        type: 'error',
-      })
-    } finally {
-      setIsDownloadingPdf(false)
-    }
+    await downloadPdf(reportContent, reportName || 'assessment-report')
   }
 
   const handleGoBack = () => {
-    router.replace(ROUTE.ASSESSMENT_REPORTS)
+    router.back()
   }
 
   const downloadMenu = (
@@ -117,14 +83,14 @@ export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
     <>
       <StyledContainer>
         <StyledContentWrapper>
-          <StyledBackLink href={ROUTE.ASSESSMENT_REPORTS}>
+          {/* <StyledBackLink href={ROUTE.ASSESSMENT_REPORTS}>
             <StyledBackIcon>
               <StyledBackIconInner>
                 <Icon.LeftOutlined />
               </StyledBackIconInner>
             </StyledBackIcon>
             Back to Reports
-          </StyledBackLink>
+          </StyledBackLink> */}
 
           <StyledStep4ReviewContentWrapper>
             <StyledStep4ReviewHeading level={3}>Assessment Report</StyledStep4ReviewHeading>
@@ -132,35 +98,41 @@ export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
             <StyledStep4ReviewDescription>View your assessment report details.</StyledStep4ReviewDescription>
 
             <Box>
-              <StyledFinalReportHeading>
+              {/* <StyledFinalReportHeading>
                 <StyledIconWithRightMargin>
                   <Icon.FileTextOutlined />
                 </StyledIconWithRightMargin>
                 Your Final Report
-              </StyledFinalReportHeading>
+              </StyledFinalReportHeading> */}
 
               <StyledReportNameLabel>Report Name</StyledReportNameLabel>
               <StyledReportNameInput type="text" value={reportName} readOnly disabled />
 
               <StyledReportContentLabelWrapper>
                 <StyledReportContentLabel>Report Content</StyledReportContentLabel>
-                <StyledFullscreenButton
+                {/* <StyledFullscreenButton
                   size="small"
                   icon={<Icon.FullscreenOutlined />}
                   onClick={() => setIsFullscreenOpen(true)}
                 >
                   View in Fullscreen
-                </StyledFullscreenButton>
+                </StyledFullscreenButton> */}
               </StyledReportContentLabelWrapper>
 
               <StyledReportContentWrapper>
-                <StyledReportContentTextArea
-                  rows={10}
-                  value={reportContent}
-                  readOnly
-                  disabled
-                  style={{ backgroundColor: '#f5f5f5', cursor: 'default' }}
-                />
+                <StyledReadOnlyTipTap editor={editor} value={reportContent} showToolbar={false} />
+                <Box marginTop="8px">
+                  <Button type="default" icon={<Icon.CopyOutlined />} onClick={handleCopyToClipboard} />
+                  <Dropdown overlay={downloadMenu} trigger={['click']}>
+                    <StyledButton
+                      type="default"
+                      icon={<Icon.DownloadOutlined />}
+                      loading={isDownloadingDocx || isDownloadingPdf}
+                      disabled={isDownloadingDocx || isDownloadingPdf}
+                    />
+                  </Dropdown>
+                  <Button type="default" icon={<Icon.FullscreenOutlined />} onClick={() => setIsFullscreenOpen(true)} />
+                </Box>
               </StyledReportContentWrapper>
             </Box>
           </StyledStep4ReviewContentWrapper>
@@ -170,7 +142,7 @@ export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
               <StyledButtonContainerWrapper>
                 <StyledGoBackButton onClick={handleGoBack}>Go Back</StyledGoBackButton>
                 <StyledCopyDownloadContainer>
-                  <StyledCopyButton onClick={handleCopyToClipboard}>Copy To Clipboard</StyledCopyButton>
+                  {/* <StyledCopyButton onClick={handleCopyToClipboard}>Copy To Clipboard</StyledCopyButton>
                   <Dropdown overlay={downloadMenu} trigger={['click']}>
                     <StyledDownloadButton
                       loading={isDownloadingDocx || isDownloadingPdf}
@@ -178,19 +150,18 @@ export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
                     >
                       Download Report <Icon.DownOutlined />
                     </StyledDownloadButton>
-                  </Dropdown>
+                  </Dropdown> */}
                 </StyledCopyDownloadContainer>
               </StyledButtonContainerWrapper>
             </StyledButtonContainer>
           </StyledButtonWrapper>
         </StyledContentWrapper>
       </StyledContainer>
-
       <StyledFullscreenModal
         open={isFullscreenOpen}
         onCancel={() => setIsFullscreenOpen(false)}
         footer={null}
-        width="95%"
+        width="85%"
         centered={true}
         closeIcon={<Icon.FullscreenExitOutlined />}
         title={
@@ -203,7 +174,7 @@ export const ViewAssessmentReport = ({ report }: ViewAssessmentReportProps) => {
         }
       >
         <StyledFullscreenModalContent>
-          <StyledFullscreenReportContent rows={15} value={reportContent} readOnly disabled />
+          <StyledFullscreenReadOnlyTipTap editor={fullscreenEditor} value={reportContent} showToolbar={false} />
         </StyledFullscreenModalContent>
       </StyledFullscreenModal>
     </>

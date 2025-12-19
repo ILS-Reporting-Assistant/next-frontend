@@ -1,19 +1,31 @@
 import { Button, DatePicker, Drawer, FormItem, Notification, useForm } from '@app/components'
 import { IStore } from '@app/redux'
 import { clientsService, extractErrorMessage } from '@app/services'
-import { AddClientProps } from '@app/types'
+import { EditClientProps } from '@app/types'
 import { isValidationError } from '@app/utils'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { StyledFooterContainer, StyledForm, StyledFormInput } from './elements'
 import moment from 'moment'
 
-export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
+export const EditClient = ({ open, setOpen, client, onSuccess }: EditClientProps) => {
   const [form] = useForm()
   const { user } = useSelector((state: IStore) => state)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const organizationId = user.currentOrganizationId
+
+  useEffect(() => {
+    if (client && open) {
+      form.setFieldsValue({
+        firstName: client.firstName,
+        lastName: client.lastName,
+        email: client.email,
+        startDate: client.startDate ? moment(client.startDate) : undefined,
+        endDate: client.endDate ? moment(client.endDate) : undefined,
+      })
+    }
+  }, [client, open, form])
 
   const handleCancel = () => {
     form.resetFields()
@@ -21,6 +33,8 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
   }
 
   const handleSubmit = async () => {
+    if (!client) return
+
     try {
       setIsSubmitting(true)
       const values = await form.validateFields()
@@ -35,20 +49,20 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
       }
 
       const payload = {
-        userId: user.uid,
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email || undefined,
-        startDate: moment(values.startDate).startOf('day').format(),
-        endDate: moment(values.endDate).endOf('day').format(),
+        startDate: values.startDate ? moment(values.startDate).startOf('day').format() : undefined,
+        endDate: values.endDate ? moment(values.endDate).endOf('day').format() : undefined,
         ...(organizationId ? { organizationId } : {}),
+        userId: user.uid,
       }
 
-      const response = await clientsService.createClient(payload)
+      const response = await clientsService.updateClient(client._id, payload)
 
       Notification({
-        message: 'Client added',
-        description: response.message || 'Client has been added successfully.',
+        message: 'Client updated',
+        description: response.message || 'Client has been updated successfully.',
         type: 'success',
       })
       form.resetFields()
@@ -61,7 +75,7 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
       if (isValidationError(error)) return
 
       Notification({
-        message: 'Cannot Add Client',
+        message: 'Cannot Update Client',
         description: extractErrorMessage(error),
         type: 'error',
       })
@@ -72,14 +86,14 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
 
   return (
     <Drawer
-      title="Add Client"
+      title="Edit Client"
       open={open}
       onClose={handleCancel}
       placement="right"
       footer={
         <StyledFooterContainer gap="12px">
           <Button type="primary" onClick={handleSubmit} loading={isSubmitting}>
-            Add Client
+            Update Client
           </Button>
           <Button type="default" onClick={handleCancel} disabled={isSubmitting}>
             Cancel
@@ -101,21 +115,11 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
         </FormItem>
 
         <FormItem label="Start Date" name="startDate">
-          <DatePicker
-            style={{ width: '100%', height: '40px' }}
-            placeholder="Select start date"
-            format="YYYY-MM-DD"
-            popupStyle={{ height: '290px' }}
-          />
+          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select start date" format="YYYY-MM-DD" />
         </FormItem>
 
         <FormItem label="End Date" name="endDate">
-          <DatePicker
-            style={{ width: '100%', height: '40px' }}
-            placeholder="Select end date"
-            format="YYYY-MM-DD"
-            popupStyle={{ height: '250px' }}
-          />
+          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select end date" format="YYYY-MM-DD" />
         </FormItem>
       </StyledForm>
     </Drawer>
