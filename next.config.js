@@ -2,13 +2,11 @@
 const withAntdLess = require('next-plugin-antd-less')
 
 module.exports = withAntdLess({
-  webpack(config) {
-    return config
-  },
   transpilePackages: [
     'antd',
     '@ant-design/icons',
     '@ant-design/icons-svg',
+    '@ant-design/colors',
     '@ant-design/pro-components',
     '@ant-design/pro-layout',
     '@ant-design/pro-list',
@@ -27,4 +25,7 @@ module.exports = withAntdLess({
     'rc-tooltip',
     'rc-table',
   ],
+  webpack(config) {
+    return config
+  },
 })

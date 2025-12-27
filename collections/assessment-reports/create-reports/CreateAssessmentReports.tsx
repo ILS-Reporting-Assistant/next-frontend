@@ -1,18 +1,16 @@
-import { Icon, Progress, Notification } from '@app/components'
-import { ROUTE } from '@app/data'
-import { Fragment, useState, useEffect, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { Notification, Progress } from '@app/components'
+import { ReportType } from '@app/enums'
+import { IStore } from '@app/redux'
+import { clientsService, extractErrorMessage, reportService } from '@app/services'
+import { isValidationError, popularSkills } from '@app/utils'
 import {
   ComplianceNotice,
-  Skills,
-  UploadDocument,
   ReviewRevice,
+  Skills,
   Success,
+  UploadDocument,
 } from 'collections/progress-reports/create-reports'
 import {
-  StyledBackIcon,
-  StyledBackIconInner,
-  StyledBackLink,
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
@@ -26,11 +24,9 @@ import {
   StyledStepContentWrapper,
   StyledStepText,
 } from 'collections/progress-reports/create-reports/elements'
-import { clientsService, reportService, extractErrorMessage } from '@app/services'
-import { isValidationError } from '@app/utils'
-import { ReportType } from '@app/enums'
 import { useRouter } from 'next/router'
-import { IStore } from '@app/redux'
+import { Fragment, useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 
 export const CreateAssessmentReports = () => {
   const { user } = useSelector((state: IStore) => state)
@@ -40,12 +36,12 @@ export const CreateAssessmentReports = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [clients, setClients] = useState([])
   const [clientsLoading, setClientsLoading] = useState(false)
-  const [selectedSkills, setSelectedSkills] = useState([])
-  const [uploadedFile, setUploadedFile] = useState(null)
+  const [selectedSkills, setSelectedSkills] = useState(popularSkills)
+  const [uploadedFiles, setUploadedFiles] = useState([])
   const [notes, setNotes] = useState('')
   const [reportContent, setReportContent] = useState('')
   const [originalContent, setOriginalContent] = useState('')
-  const [fileId, setFileId] = useState(null)
+  const [fileIds, setFileIds] = useState<string[]>([])
   const [reportName, setReportName] = useState('Initial Assessment Report')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -94,13 +90,13 @@ export const CreateAssessmentReports = () => {
     }
   }
 
-  const handleFileUpload = useCallback((file) => {
-    setUploadedFile(file)
+  const handleFilesUpload = useCallback((files) => {
+    setUploadedFiles(files)
   }, [])
 
   const handleExtractDocument = useCallback(async () => {
-    // Validate that at least one of file or notes is provided
-    if (!uploadedFile && !notes) {
+    // Validate that at least one of files or notes is provided
+    if (uploadedFiles.length === 0 && !notes) {
       Notification({
         message: 'No input provided',
         description: 'Please upload a document or enter notes',
@@ -115,17 +111,18 @@ export const CreateAssessmentReports = () => {
     // Notes are already plain text from UploadDocument component
     const notesText = notes || undefined
 
-    // Get the actual file object (antd Upload provides originFileObj) if file is provided
-    const file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
+    // Get the actual file objects (antd Upload provides originFileObj) if files are provided
+    const files =
+      uploadedFiles.length > 0 ? uploadedFiles.map((file) => file.originFileObj || file).filter(Boolean) : undefined
 
     setIsExtracting(true)
     setApiSuccess(false)
     try {
       const clientId = selectedClient?._id || selectedClient?.id || null
-      const result = await reportService.uploadDocument(file, organizationId, selectedSkills, clientId, notesText)
+      const result = await reportService.uploadDocument(files, organizationId, selectedSkills, clientId, notesText)
       setReportContent(result.content)
       setOriginalContent(result.originalContent || '')
-      setFileId(result.fileId || null)
+      setFileIds(result.fileIds || [])
       // When API call succeeds, set apiSuccess to true
       setApiSuccess(true)
     } catch (error) {
@@ -142,7 +139,7 @@ export const CreateAssessmentReports = () => {
       // Set isExtracting to false when API response comes (success or error)
       setIsExtracting(false)
     }
-  }, [uploadedFile, notes, organizationId, selectedSkills, selectedClient])
+  }, [uploadedFiles, notes, organizationId, selectedSkills, selectedClient])
 
   const handleSaveReport = useCallback(async () => {
     if (!selectedClient) {
@@ -172,7 +169,7 @@ export const CreateAssessmentReports = () => {
         clientId: selectedClient?._id,
         reportType: ReportType.ASSESSMENT,
         reportName,
-        fileId: fileId || undefined,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
         originalContent,
         content: reportContent,
         skills: selectedSkills,
@@ -189,9 +186,9 @@ export const CreateAssessmentReports = () => {
       // Reset form state
       setReportContent('')
       setOriginalContent('')
-      setFileId(null)
+      setFileIds([])
       setReportName('Initial Assessment Report')
-      setUploadedFile(null)
+      setUploadedFiles([])
       setNotes('')
       setSelectedSkills([])
       setSelectedClient(null)
@@ -207,7 +204,7 @@ export const CreateAssessmentReports = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [selectedClient, fileId, reportName, reportContent, originalContent, organizationId, selectedSkills])
+  }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedClient) {
@@ -266,10 +263,11 @@ export const CreateAssessmentReports = () => {
       case 3:
         return (
           <UploadDocument
-            uploadedFile={uploadedFile}
-            onFileChange={handleFileUpload}
+            uploadedFiles={uploadedFiles}
+            onFilesChange={handleFilesUpload}
             notes={notes}
             onNotesChange={setNotes}
+            allowMultiple={true}
           />
         )
       case 4:
@@ -295,14 +293,14 @@ export const CreateAssessmentReports = () => {
     <Fragment>
       <StyledContainer>
         <StyledContentWrapper>
-          <StyledBackLink href={ROUTE.ASSESSMENT_REPORTS}>
+          {/* <StyledBackLink href={ROUTE.ASSESSMENT_REPORTS}>
             <StyledBackIcon>
               <StyledBackIconInner>
                 <Icon.LeftOutlined />
               </StyledBackIconInner>
             </StyledBackIcon>
             Back to Reports
-          </StyledBackLink>
+          </StyledBackLink> */}
 
           <StyledProgressTitle level={2}>Initial Assessment Report</StyledProgressTitle>
 

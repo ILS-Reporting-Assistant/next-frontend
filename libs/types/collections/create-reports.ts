@@ -15,7 +15,7 @@ export interface CreateReportsProps {
 export interface GenerateAssessmentReportResponse {
   originalContent: string
   content: string
-  fileId?: string
+  fileIds?: string[]
 }
 
 export interface SaveReportPayload {
@@ -23,10 +23,11 @@ export interface SaveReportPayload {
   clientId: string
   reportType: ReportType
   reportName: string
-  fileId?: string
+  fileIds?: string[]
   originalContent: string
   content: string
   skills?: string[]
+  parentReportId?: string
 }
 
 export interface SaveReportResponse {
@@ -36,10 +37,11 @@ export interface SaveReportResponse {
   clientId: string
   reportType: string
   reportName: string
-  fileId?: string
+  fileIds?: string[]
   originalContent: string
   content: string
   skills?: string[]
+  parentReportId?: string | null
   createdAt: string
   updatedAt: string
 }

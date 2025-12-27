@@ -74,6 +74,35 @@ export const GlobalStyles = createGlobalStyle`
     font-size: 14px !important;
   }
 
+ .fade-slide-enter,
+.fade-slide-appear {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.fade-slide-enter-active,
+.fade-slide-appear-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 300ms ease 80ms,
+    transform 300ms ease 80ms;
+}
+
+.fade-slide-leave {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-slide-leave-active {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 250ms ease,
+    transform 250ms ease;
+}
+
+
   body {
     font-size: 14px;
     overflow: hidden;

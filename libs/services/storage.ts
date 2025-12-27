@@ -13,9 +13,18 @@ export const storageService = {
 
     const { data } = await httpClient.post<ApiResponse<UploadDocumentResponse>>(
       ENDPOINT.STORAGE.UPLOAD_DOCUMENT,
-      formData
+      formData,
+    )
+    return data.data
+  },
+  async getSignedUrl(
+    fileId: string,
+    disposition?: 'inline' | 'attachment',
+  ): Promise<{ signedUrl: string; fileName: string }> {
+    const { data } = await httpClient.get<ApiResponse<{ signedUrl: string; fileName: string }>>(
+      ENDPOINT.STORAGE.GET_SIGNED_URL(fileId),
+      { params: { disposition } },
     )
     return data.data
   },
 }
-

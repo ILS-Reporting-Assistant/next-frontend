@@ -178,6 +178,21 @@ export const StyledButtonWrapper = styled((props: BoxProps) => <Box {...props} /
   }
 `
 
+export const StyledProgressReportWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  position: fixed;
+  bottom: 100px;
+  left: 250px;
+  right: 0;
+  background: #e8e8e8;
+  padding: 16px 57px;
+  z-index: 1000;
+
+  @media only screen and (max-width: ${maxTablet}) {
+    left: 0;
+    padding: 16px 25px;
+  }
+`
+
 export const StyledButtonContainer = styled((props: BoxProps) => <Box {...props} />)`
   display: flex;
   justify-content: space-between;
@@ -511,10 +526,12 @@ export const StyledUploadedFileContainer = styled((props: BoxProps) => <Box {...
   align-items: center;
   gap: 8px;
   margin-top: 16px;
+  margin-bottom: 16px;
   padding: 22px 12px;
   background: #fafafa;
   border-radius: 4px;
   border: 1px solid #d9d9d9;
+  width: 100%;
 `
 
 export const StyledUploadedFileName = styled((props: TextProps) => <Text {...props} />)`
@@ -824,7 +841,7 @@ export const StyledReportNameInput = styled((props: InputProps) => <Input {...pr
   font-size: 16px;
   line-height: 100%;
   font-weight: 500;
-  padding: 13px 24px;
+  padding: 13px 13px;
   margin-bottom: 30px;
   width: 100%;
   border: 1px solid #d9d9d9;
@@ -865,6 +882,41 @@ export const StyledReportContentLabel = styled((props: TextProps) => <Text {...p
 
 export const StyledReportContentWrapper = styled((props: BoxProps) => <Box {...props} />)`
   margin-bottom: 24px;
+  position: relative;
+`
+
+export const StyledSuccessOverlay = styled((props: BoxProps) => <Box {...props} />)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 4px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+`
+
+export const StyledSuccessOverlayContent = styled((props: BoxProps) => <Box {...props} />)`
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+  padding: 20px 0;
+`
+
+export const StyledOverlayProgressStepsContainer = styled((props: BoxProps) => <Box {...props} />)`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding-top: 24px;
 `
 
 export const StyledReportContentTextArea = styled((props: TextAreaProps) => <TextArea {...props} />)`
@@ -926,7 +978,7 @@ export const StyledAIRevisionsHeading = styled((props: TextProps) => <Text {...p
   display: block;
 `
 
-export const StyledAIRevisionsInput = styled((props: InputProps) => <Input {...props} />)`
+export const StyledAIRevisionsInput = styled((props: TextAreaProps) => <TextArea {...props} />)`
   width: 100%;
   margin-bottom: 12px;
 
@@ -938,7 +990,7 @@ export const StyledAIRevisionsInput = styled((props: InputProps) => <Input {...p
     font-size: 14px;
     line-height: 1.5;
     color: #232323;
-    resize: vertical;
+    resize: none;
     outline: none;
     font-family: inherit;
 
@@ -1179,4 +1231,28 @@ export const StyledFullscreenReadOnlyTipTap = styled((props: TipTapProps) => <Ti
     max-height: 500px;
     overflow-y: auto;
   }
+`
+
+// ISP Review specific styles
+export const StyledRadioGroupWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  margin-bottom: 24px;
+`
+
+export const StyledSelectWrapper = styled((props: BoxProps) => <Box {...props} />)`
+  margin-bottom: 16px;
+`
+
+export const StyledSelectLabel = styled((props: TextProps) => <Text {...props} />)`
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+`
+
+export const StyledProgressReportSelect = styled((props: SelectProps<any>) => <Select {...props} />)`
+  width: 100%;
+`
+
+export const StyledEmptyProgressReportsMessage = styled((props: TextProps) => <Text {...props} />)`
+  color: #999;
+  font-style: italic;
 `

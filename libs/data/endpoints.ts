@@ -28,6 +28,7 @@ export const ENDPOINT = {
   },
   STORAGE: {
     UPLOAD_DOCUMENT: '/storage/upload/document',
+    GET_SIGNED_URL: (fileId: string) => `/storage/file/${fileId}/signed-url`,
   },
   REPORTS: {
     LIST: '/reports',

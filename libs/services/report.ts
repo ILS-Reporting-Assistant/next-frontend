@@ -18,7 +18,7 @@ import { processSSEResponse } from '../utils'
 
 export const reportService = {
   async uploadDocument(
-    file?: File,
+    files?: File | File[],
     organizationId?: string,
     selectedSkills?: string[],
     clientId?: string,
@@ -27,9 +27,15 @@ export const reportService = {
   ): Promise<GenerateAssessmentReportResponse> {
     const formData = new FormData()
 
-    // Add file only if provided
-    if (file) {
-      formData.append('file', file)
+    // Add files if provided (support both single file and multiple files)
+    if (files) {
+      if (Array.isArray(files)) {
+        files.forEach((file) => {
+          formData.append('files', file)
+        })
+      } else {
+        formData.append('files', files)
+      }
     }
 
     if (organizationId) {

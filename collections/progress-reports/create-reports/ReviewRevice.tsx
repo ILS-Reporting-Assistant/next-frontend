@@ -1,9 +1,11 @@
-import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification, TipTap } from '@app/components'
-import { useEffect, useState } from 'react'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification, TipTap, Spin } from '@app/components'
+import { useEffect, useState, useRef } from 'react'
 import { extractErrorMessage } from '../../../libs/services/auth'
 import { reportService } from '../../../libs/services/report'
 import { ReviewReviceProps } from '@app/types'
 import { ReportType } from '@app/enums'
+import { progressSteps } from '@app/utils'
+import { StarsAnimation } from 'public/images'
 import {
   StyledAIRevisionsHeading,
   StyledAIRevisionsInput,
@@ -36,6 +38,13 @@ import {
   StyledButton,
   StyledReadOnlyTipTap,
   StyledFullscreenReadOnlyTipTap,
+  StyledSuccessOverlay,
+  StyledSuccessOverlayContent,
+  StyledStarIconContainer,
+  StyledProgressStep,
+  StyledCheckCircle,
+  StyledProgressStepText,
+  StyledOverlayProgressStepsContainer,
 } from './elements'
 import { useReportEditor } from '@app/hooks'
 
@@ -57,6 +66,10 @@ export const ReviewRevice = ({
   const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [isRequestingRevision, setIsRequestingRevision] = useState(false)
+  const [showRevisionSuccess, setShowRevisionSuccess] = useState(false)
+  const [revisionApiSuccess, setRevisionApiSuccess] = useState(false)
+  const [steps, setSteps] = useState(progressSteps)
+  const sequenceStartedRef = useRef(false)
 
   // Main editor for the regular view
   const { editor, handleCopyToClipboard } = useReportEditor({
@@ -92,6 +105,45 @@ export const ReviewRevice = ({
     setReportContent(defaultReportContent)
   }, [defaultReportContent])
 
+  // Reset steps when extraction starts
+  useEffect(() => {
+    if (isRequestingRevision && !revisionApiSuccess) {
+      setSteps(progressSteps)
+      sequenceStartedRef.current = false
+    }
+  }, [isRequestingRevision, revisionApiSuccess])
+
+  // When API call succeeds, start completing steps sequentially
+  useEffect(() => {
+    if (revisionApiSuccess && !isRequestingRevision && !sequenceStartedRef.current) {
+      sequenceStartedRef.current = true
+
+      // Complete first step immediately when API succeeds
+      setSteps((prev) => prev.map((step) => (step.id === 1 ? { ...step, completed: true } : step)))
+
+      // Complete second step after delay
+      const timer2 = setTimeout(() => {
+        setSteps((prev) => prev.map((step) => (step.id === 2 ? { ...step, completed: true } : step)))
+
+        // Complete third step after delay
+        const timer3 = setTimeout(() => {
+          setSteps((prev) => prev.map((step) => (step.id === 3 ? { ...step, completed: true } : step)))
+
+          // When all steps are completed, call onComplete
+          const timer4 = setTimeout(() => {
+            handleRevisionSuccessComplete()
+          }, 2000)
+
+          return () => clearTimeout(timer4)
+        }, 1000)
+
+        return () => clearTimeout(timer3)
+      }, 1000)
+
+      return () => clearTimeout(timer2)
+    }
+  }, [revisionApiSuccess, isRequestingRevision])
+
   const handleRequestAIRevision = async () => {
     if (!revisionRequest.trim()) {
       Notification({
@@ -114,7 +166,10 @@ export const ReviewRevice = ({
     // Use reportContent as fallback for originalContent if not provided
     const contentToUseAsOriginal = originalContent || reportContent
 
+    setShowRevisionSuccess(true)
     setIsRequestingRevision(true)
+    setRevisionApiSuccess(false)
+
     try {
       const result = await reportService.requestAIRevision(
         contentToUseAsOriginal,
@@ -130,14 +185,20 @@ export const ReviewRevice = ({
         onReportContentChange(revisedContent)
       }
 
+      // Set API success to trigger success screen animation
+      setRevisionApiSuccess(true)
+      setIsRequestingRevision(false)
+
+      // Note: Success screen will auto-hide via handleRevisionSuccessComplete callback
       Notification({
         message: 'Report revised successfully',
         type: 'success',
       })
-
       // Clear the revision request input
       setRevisionRequest('')
     } catch (error) {
+      setShowRevisionSuccess(false)
+      setRevisionApiSuccess(false)
       Notification({
         message: 'Failed to revise report',
         description: extractErrorMessage(error),
@@ -145,6 +206,7 @@ export const ReviewRevice = ({
       })
     } finally {
       setIsRequestingRevision(false)
+      setShowRevisionSuccess(false)
     }
   }
 
@@ -211,6 +273,11 @@ export const ReviewRevice = ({
     </Menu>
   )
 
+  const handleRevisionSuccessComplete = () => {
+    setShowRevisionSuccess(false)
+    setRevisionApiSuccess(false)
+  }
+
   return (
     <>
       <StyledStep4StepText>Step 4 of 4: Review & Revise</StyledStep4StepText>
@@ -255,6 +322,15 @@ export const ReviewRevice = ({
 
           <StyledReportContentWrapper>
             <StyledReadOnlyTipTap editor={editor} value={reportContent} showToolbar={true} />
+            {showRevisionSuccess && (
+              <StyledSuccessOverlay>
+                <StyledSuccessOverlayContent>
+                  <StyledStarIconContainer>
+                    <StarsAnimation />
+                  </StyledStarIconContainer>
+                </StyledSuccessOverlayContent>
+              </StyledSuccessOverlay>
+            )}
             <Box marginTop="8px">
               <Button type="default" icon={<Icon.CopyOutlined />} onClick={handleCopyToClipboard} />
               <Dropdown overlay={downloadMenu} trigger={['click']}>
@@ -282,6 +358,7 @@ export const ReviewRevice = ({
             placeholder="Tell me what you'd like to be changed."
             value={revisionRequest}
             onChange={(e) => setRevisionRequest(e.target.value)}
+            autoSize={{ minRows: 1, maxRows: 8 }}
           />
 
           <StyledReviseButtonWrapper>

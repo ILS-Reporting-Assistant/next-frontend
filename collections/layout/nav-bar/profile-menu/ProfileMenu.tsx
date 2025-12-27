@@ -75,6 +75,17 @@ export const ProfileMenu: React.FC = () => {
       onClick: () => showLogoutModal(),
     },
   ]
+  const nameInitials = () => {
+    let displayName = ''
+    if (user?.firstName) {
+      const name = user.firstName
+      const lastName = user.lastName || ''
+      displayName = name[0].charAt(0).toUpperCase() + (lastName ? lastName.charAt(0).toUpperCase() : '')
+    } else {
+      displayName = user?.email?.split('@')?.[0] || ''.charAt(0).toUpperCase()
+    }
+    return displayName
+  }
   return (
     <>
       <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
@@ -85,20 +96,14 @@ export const ProfileMenu: React.FC = () => {
                 <Avatar style={{ backgroundColor: color.secondary }} icon={<UserOutlined />} size={'small'} />
               </StyledBadge>
             ) : (
-              <Avatar icon={<UserOutlined />} size={'small'} style={{ backgroundColor: '#303030' }} />
+              <Avatar size={'small'} style={{ backgroundColor: '#303030' }} name={nameInitials()} />
             )}
-            <StyledText>{user?.firstName || user?.email?.split('@')?.[0]}</StyledText>
-            <DownOutlined style={{ color: color.white }} />
+            {/* <StyledText>{user?.firstName || user?.email?.split('@')?.[0]}</StyledText> */}
+            {/* <DownOutlined style={{ color: color.white }} /> */}
           </Space>
         </StyledButton>
       </Dropdown>
-      <Modal
-        open={isLogoutModalOpen}
-        title="Confirm Logout"
-        onCancel={handleLogoutCancel}
-        centered
-        footer={null}
-      >
+      <Modal open={isLogoutModalOpen} title="Confirm Logout" onCancel={handleLogoutCancel} centered footer={null}>
         <Text>Are you sure you want to logout?</Text>
         <StyledModalFooter>
           <StyledModalCancelButton type="default" onClick={handleLogoutCancel}>

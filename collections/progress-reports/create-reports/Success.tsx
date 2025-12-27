@@ -75,7 +75,7 @@ export const Success = ({ onComplete, isExtracting = true, apiSuccess = false }:
       <StyledProgressStepsContainer>
         {steps.map((step) => {
           const isFirstStep = step.id === 1
-          const isLoading = isFirstStep && isExtracting && !apiSuccess
+          const isLoading = isExtracting && !apiSuccess
           return (
             <StyledProgressStep key={step.id}>
               {isLoading ? (
