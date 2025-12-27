@@ -1,36 +1,41 @@
-import { Icon, Progress, Notification } from '@app/components'
-import { ROUTE } from '@app/data'
-import { Fragment, useState, useEffect, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { Box, Button, Icon, Notification, Progress, Radio, RadioGroup } from '@app/components'
+import { InputType, ReportType } from '@app/enums'
+import { IStore } from '@app/redux'
+import { clientsService, extractErrorMessage, reportService } from '@app/services'
+import { Report } from '@app/types'
+import { isValidationError } from '@app/utils'
 import {
   ComplianceNotice,
-  Skills,
-  UploadDocument,
   ReviewRevice,
+  Skills,
   Success,
+  UploadDocument,
 } from 'collections/progress-reports/create-reports'
 import {
-  StyledBackIcon,
-  StyledBackIconInner,
-  StyledBackLink,
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
   StyledContainer,
   StyledContentWrapper,
+  StyledEmptyProgressReportsMessage,
   StyledGoBackButton,
   StyledNextButton,
+  StyledPaperClipIcon,
   StyledProgressBarWrapper,
+  StyledProgressReportSelect,
   StyledProgressTitle,
+  StyledRadioGroupWrapper,
+  StyledSelectLabel,
+  StyledSelectWrapper,
   StyledStep3StepText,
   StyledStepContentWrapper,
   StyledStepText,
+  StyledUploadedFileContainer,
+  StyledUploadedFileName,
 } from 'collections/progress-reports/create-reports/elements'
-import { clientsService, reportService, extractErrorMessage } from '@app/services'
-import { isValidationError } from '@app/utils'
-import { ReportType } from '@app/enums'
 import { useRouter } from 'next/router'
-import { IStore } from '@app/redux'
+import { Fragment, useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 
 export const CreateIspReviews = () => {
   const { user } = useSelector((state: IStore) => state)
@@ -45,11 +50,15 @@ export const CreateIspReviews = () => {
   const [notes, setNotes] = useState('')
   const [reportContent, setReportContent] = useState('')
   const [originalContent, setOriginalContent] = useState('')
-  const [fileId, setFileId] = useState(null)
+  const [fileIds, setFileIds] = useState<string[]>([])
   const [reportName, setReportName] = useState('Annual ISP Review')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [apiSuccess, setApiSuccess] = useState(false)
+  const [inputType, setInputType] = useState<InputType>(InputType.PROGRESS_REPORT)
+  const [selectedProgressReport, setSelectedProgressReport] = useState<Report | null>(null)
+  const [progressReports, setProgressReports] = useState<Report[]>([])
+  const [progressReportsLoading, setProgressReportsLoading] = useState(false)
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
@@ -78,6 +87,48 @@ export const CreateIspReviews = () => {
     fetchClients()
   }, [organizationId])
 
+  // Fetch progress reports when input type is 'progress-report' and client is selected
+  useEffect(() => {
+    const fetchProgressReports = async () => {
+      if (inputType !== InputType.PROGRESS_REPORT || !selectedClient) {
+        // Reset if input type is not PROGRESS_REPORT or no client selected
+        setProgressReports([])
+        setSelectedProgressReport(null)
+        return
+      }
+
+      const clientId = selectedClient?._id || selectedClient?.id
+      if (!clientId) {
+        setProgressReports([])
+        setSelectedProgressReport(null)
+        return
+      }
+
+      // Reset when client changes before fetching new data
+      setSelectedProgressReport(null)
+      setProgressReportsLoading(true)
+      try {
+        const response = await reportService.getReportsByClientId(clientId, {
+          reportType: ReportType.PROGRESS,
+          limit: 100,
+        })
+        setProgressReports(response.reports || [])
+      } catch (error) {
+        if (isValidationError(error)) return
+        Notification({
+          message: 'Failed to fetch progress reports',
+          description: extractErrorMessage(error),
+          type: 'error',
+        })
+        setProgressReports([])
+      } finally {
+        setProgressReportsLoading(false)
+      }
+    }
+
+    fetchProgressReports()
+  }, [inputType, selectedClient])
+
   const getStepTitle = () => {
     switch (currentStep) {
       case 1:
@@ -98,8 +149,18 @@ export const CreateIspReviews = () => {
   }, [])
 
   const handleExtractDocument = useCallback(async () => {
-    // Validate that at least one of file or notes is provided
-    if (!uploadedFile && !notes) {
+    const clientId = selectedClient?._id || selectedClient?.id || null
+
+    if (inputType === InputType.PROGRESS_REPORT) {
+      if (!selectedProgressReport) {
+        Notification({
+          message: 'No progress report selected',
+          description: 'Please select a progress report',
+          type: 'error',
+        })
+        return
+      }
+    } else if (!uploadedFile && !notes) {
       Notification({
         message: 'No input provided',
         description: 'Please upload a document or enter notes',
@@ -107,41 +168,58 @@ export const CreateIspReviews = () => {
       })
       return
     }
-
-    // Show success animation immediately when button is clicked
     setShowSuccess(true)
 
-    // Notes are already plain text from UploadDocument component
-    const notesText = notes || undefined
+    let file: File | undefined
+    let notesText: string | undefined
+    let sourceOriginalContent: string | undefined
+    let sourceFileIds: string[] = []
 
-    // Get the actual file object (antd Upload provides originFileObj) if file is provided
-    const file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
+    if (inputType === InputType.PROGRESS_REPORT) {
+      notesText = selectedProgressReport?.content
+      sourceOriginalContent = selectedProgressReport?.originalContent || ''
+      // Support both old fileId and new fileIds for backward compatibility
+      if (selectedProgressReport?.fileIds && selectedProgressReport.fileIds.length > 0) {
+        sourceFileIds = selectedProgressReport.fileIds.map((f) => f._id)
+      } else if (selectedProgressReport?.fileId?._id) {
+        sourceFileIds = [selectedProgressReport.fileId._id]
+      }
+    } else {
+      notesText = notes || undefined
+      file = uploadedFile ? uploadedFile.originFileObj || uploadedFile : undefined
+    }
 
     setIsExtracting(true)
     setApiSuccess(false)
+
     try {
-      const clientId = selectedClient?._id || selectedClient?.id || null
       const result = await reportService.uploadIspDocument(file, organizationId, selectedSkills, clientId, notesText)
       setReportContent(result.content)
-      setOriginalContent(result.originalContent || '')
-      setFileId(result.fileId || null)
-      // When API call succeeds, set apiSuccess to true
+
+      if (inputType === InputType.PROGRESS_REPORT) {
+        setOriginalContent(sourceOriginalContent || '')
+        setFileIds(sourceFileIds)
+      } else {
+        setOriginalContent(result.originalContent || '')
+        setFileIds(result.fileIds || [])
+      }
+
       setApiSuccess(true)
     } catch (error) {
       if (isValidationError(error)) return
-      // Hide success animation on error
+
       setShowSuccess(false)
       setApiSuccess(false)
+
       Notification({
-        message: 'Failed to extract document',
+        message: inputType === InputType.PROGRESS_REPORT ? 'Failed to generate report' : 'Failed to extract document',
         description: extractErrorMessage(error),
         type: 'error',
       })
     } finally {
-      // Set isExtracting to false when API response comes (success or error)
       setIsExtracting(false)
     }
-  }, [uploadedFile, notes, organizationId, selectedSkills, selectedClient])
+  }, [inputType, selectedProgressReport, uploadedFile, notes, organizationId, selectedSkills, selectedClient])
 
   const handleSaveReport = useCallback(async () => {
     if (!selectedClient) {
@@ -152,8 +230,6 @@ export const CreateIspReviews = () => {
       })
       return
     }
-
-    // fileId is optional now (can be null if notes were used instead of file)
 
     if (!reportName || !reportContent) {
       Notification({
@@ -171,13 +247,15 @@ export const CreateIspReviews = () => {
         clientId: selectedClient?._id,
         reportType: ReportType.ISP,
         reportName,
-        fileId: fileId || undefined,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
         originalContent,
         content: reportContent,
         skills: selectedSkills,
+        parentReportId:
+          inputType === InputType.PROGRESS_REPORT && selectedProgressReport ? selectedProgressReport._id : undefined,
       }
 
-      const result = await reportService.saveReport(payload)
+      await reportService.saveReport(payload)
       Notification({
         message: 'Report saved successfully',
         type: 'success',
@@ -188,7 +266,7 @@ export const CreateIspReviews = () => {
       // Reset form state
       setReportContent('')
       setOriginalContent('')
-      setFileId(null)
+      setFileIds([])
       setReportName('Annual ISP Review')
       setUploadedFile(null)
       setNotes('')
@@ -206,7 +284,7 @@ export const CreateIspReviews = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [selectedClient, fileId, reportName, reportContent, originalContent, organizationId, selectedSkills])
+  }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedClient) {
@@ -224,6 +302,13 @@ export const CreateIspReviews = () => {
       return
     }
     if (currentStep === 3) {
+      if (inputType === InputType.PROGRESS_REPORT && !selectedProgressReport) {
+        Notification({
+          message: 'Please select a progress report',
+          type: 'warning',
+        })
+        return
+      }
       handleExtractDocument()
     } else if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1)
@@ -264,12 +349,58 @@ export const CreateIspReviews = () => {
         return <Skills selectedSkills={selectedSkills} onSkillsChange={setSelectedSkills} />
       case 3:
         return (
-          <UploadDocument
-            uploadedFile={uploadedFile}
-            onFileChange={handleFileUpload}
-            notes={notes}
-            onNotesChange={setNotes}
-          />
+          <Box>
+            <StyledRadioGroupWrapper>
+              <RadioGroup
+                value={inputType}
+                onChange={(e) => {
+                  setInputType(e.target.value)
+                  setSelectedProgressReport(null)
+                }}
+              >
+                <Radio value={InputType.PROGRESS_REPORT}>Select Progress Report</Radio>
+                <Radio value={InputType.UPLOAD}>Enter Daily Notes & Observations</Radio>
+              </RadioGroup>
+            </StyledRadioGroupWrapper>
+
+            {inputType === InputType.PROGRESS_REPORT ? (
+              <Box>
+                <StyledSelectWrapper>
+                  <StyledSelectLabel>Select Progress Report</StyledSelectLabel>
+                  <StyledProgressReportSelect
+                    placeholder="Select a progress report"
+                    value={selectedProgressReport?._id}
+                    onChange={(value) => {
+                      const report = progressReports.find((r) => r._id === value)
+                      setSelectedProgressReport(report || null)
+                    }}
+                    loading={progressReportsLoading}
+                    showSearch
+                    filterOption={(input, option) => {
+                      const label = typeof option?.label === 'string' ? option.label : String(option?.label ?? '')
+                      return label.toLowerCase().includes(input.toLowerCase())
+                    }}
+                    options={progressReports.map((report) => ({
+                      value: report._id,
+                      label: report.reportName,
+                    }))}
+                  />
+                </StyledSelectWrapper>
+                {progressReports.length === 0 && !progressReportsLoading && (
+                  <StyledEmptyProgressReportsMessage>
+                    No progress reports found for this client.
+                  </StyledEmptyProgressReportsMessage>
+                )}
+              </Box>
+            ) : (
+              <UploadDocument
+                uploadedFile={uploadedFile}
+                onFileChange={handleFileUpload}
+                notes={notes}
+                onNotesChange={setNotes}
+              />
+            )}
+          </Box>
         )
       case 4:
         return (
@@ -294,14 +425,14 @@ export const CreateIspReviews = () => {
     <Fragment>
       <StyledContainer>
         <StyledContentWrapper>
-          <StyledBackLink href={ROUTE.ISP_REVIEWS}>
+          {/* <StyledBackLink href={ROUTE.ISP_REVIEWS}>
             <StyledBackIcon>
               <StyledBackIconInner>
                 <Icon.LeftOutlined />
               </StyledBackIconInner>
             </StyledBackIcon>
             Back to Reports
-          </StyledBackLink>
+          </StyledBackLink> */}
 
           <StyledProgressTitle level={2}>Annual ISP Review</StyledProgressTitle>
 
@@ -334,21 +465,43 @@ export const CreateIspReviews = () => {
           )}
 
           {!showSuccess && currentStep !== 4 && (
-            <StyledButtonWrapper>
-              <StyledButtonContainer>
-                <StyledButtonContainerWrapper>
-                  <StyledGoBackButton onClick={handleGoBack}>Go Back</StyledGoBackButton>
-                  <StyledNextButton
-                    type="primary"
-                    onClick={handleNext}
-                    loading={currentStep === 3 && isExtracting}
-                    disabled={currentStep === 3 && isExtracting}
-                  >
-                    {currentStep === 3 ? (isExtracting ? 'Extracting...' : 'Generate My Report') : 'Next'}
-                  </StyledNextButton>
-                </StyledButtonContainerWrapper>
-              </StyledButtonContainer>
-            </StyledButtonWrapper>
+            <>
+              {currentStep === 3 && inputType === InputType.PROGRESS_REPORT && selectedProgressReport && (
+                <StyledButtonContainer>
+                  <StyledButtonContainerWrapper>
+                    <StyledUploadedFileContainer>
+                      <StyledPaperClipIcon>
+                        <Icon.PaperClipOutlined />
+                      </StyledPaperClipIcon>
+                      <StyledUploadedFileName>{selectedProgressReport.reportName}</StyledUploadedFileName>
+                      <Button
+                        danger
+                        onClick={() => {
+                          setSelectedProgressReport(null)
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </StyledUploadedFileContainer>
+                  </StyledButtonContainerWrapper>
+                </StyledButtonContainer>
+              )}
+              <StyledButtonWrapper>
+                <StyledButtonContainer>
+                  <StyledButtonContainerWrapper>
+                    <StyledGoBackButton onClick={handleGoBack}>Go Back</StyledGoBackButton>
+                    <StyledNextButton
+                      type="primary"
+                      onClick={handleNext}
+                      loading={currentStep === 3 && isExtracting}
+                      disabled={currentStep === 3 && isExtracting}
+                    >
+                      {currentStep === 3 ? (isExtracting ? 'Extracting...' : 'Generate My Report') : 'Next'}
+                    </StyledNextButton>
+                  </StyledButtonContainerWrapper>
+                </StyledButtonContainer>
+              </StyledButtonWrapper>
+            </>
           )}
         </StyledContentWrapper>
       </StyledContainer>

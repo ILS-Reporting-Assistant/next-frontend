@@ -16,8 +16,10 @@ export interface Report {
   reportType: ReportType
   reportName: string
   fileId?: { _id: string; name: string; key: string; contentType: string; sizeBytes: number }
+  fileIds?: { _id: string; name: string; key: string; contentType: string; sizeBytes: number }[]
   originalContent: string
   content: string
+  parentReportId?: string | null
   createdAt: string
   updatedAt: string
 }

@@ -163,3 +163,32 @@ export const StyledPaginationContainer = styled(Box)`
 export const StyledBadgeRibbon = styled(Badge.Ribbon)`
   text-transform: capitalize;
 `
+
+export const StyledFileText = styled((props: TextProps) => <Text {...props} />)`
+  font-size: 12px;
+  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+export const StyledFilesContainer = styled(Box)`
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`
+
+export const StyledFilesWrapper = styled(Box)`
+  margin-top: -1px;
+  padding: 12px 24px 16px 24px;
+  background-color: #fff;
+  border-left: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`

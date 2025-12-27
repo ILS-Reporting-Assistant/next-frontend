@@ -1,23 +1,24 @@
 import React, { useState } from 'react'
 import { DateText, Footer, Header, StyledCard, Title, UserName, StyledBadgeRibbon } from './elements'
-import { Box, Dropdown, Icon, Menu, MenuItem, Notification, Popover, Tag, Text } from '@app/components'
+import { Box, Dropdown, Icon, Menu, MenuItem, Notification, Popover, Spin, Tag, Text } from '@app/components'
 import moment from 'moment'
-import { getAvatarText, getFullName, getReportTypeColor, getFileTypeFromContent, truncateFileName } from '@app/utils'
+import { getFullName, getFileTypeFromContent, truncateFileName } from '@app/utils'
 import { ReportCardProps } from '@app/types'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
-import { Avatar } from 'antd'
 import { ReportType, UserRole } from '@app/enums'
 import { useRouter } from 'next/router'
 import { ROUTE } from '@app/data'
-import { extractErrorMessage, reportService } from '@app/services'
+import { extractErrorMessage, reportService, storageService } from '@app/services'
 
 export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
   const router = useRouter()
   const { color, user } = useSelector((state: IStore) => state)
   const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
-  const fileType = getFileTypeFromContent(report.fileId?.contentType, report.fileId?.name)
+  // Support both old fileId and new fileIds for backward compatibility
+  const firstFile = report.fileIds && report.fileIds.length > 0 ? report.fileIds[0] : report.fileId || null
+  const fileType = getFileTypeFromContent(firstFile?.contentType, firstFile?.name)
 
   const viewReport = () => {
     if (report?.reportType === ReportType.ASSESSMENT) {
@@ -39,8 +40,8 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
     }
   }
 
-  const reportContent = kind === 'notes' ? report?.originalContent : report?.content
-  const reportName = kind === 'notes' ? report?.fileId?.name : report?.reportName
+  const reportContent = report?.content
+  const reportName = report?.reportName
 
   const handleDownloadDocx = async () => {
     if (!reportContent) return
@@ -98,15 +99,97 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
       </MenuItem>
     </Menu>
   )
-  const title = kind === 'notes' ? report?.fileId?.name || 'Untitled Report' : report.reportName || 'Untitled Report'
+
+  // Get all files from report (supports both fileIds and fileId for backward compatibility)
+  const getFilesFromReport = () => {
+    const files: Array<{ _id: string; name: string; key?: string; contentType?: string; sizeBytes?: number }> = []
+    if (report.fileIds && report.fileIds.length > 0) {
+      files.push(...report.fileIds)
+    } else if (report.fileId) {
+      files.push(report.fileId)
+    }
+    return files
+  }
+
+  const FileItem: React.FC<{
+    file: { _id: string; name: string; key?: string; contentType?: string; sizeBytes?: number }
+  }> = ({ file }) => {
+    const [loading, setLoading] = useState(false)
+    const [downloading, setDownloading] = useState(false)
+
+    const handleView = async () => {
+      setLoading(true)
+      try {
+        const { signedUrl } = await storageService.getSignedUrl(file._id, 'inline')
+        window.open(signedUrl, '_blank')
+      } catch (error) {
+        Notification({
+          message: 'Failed to open file',
+          description: extractErrorMessage(error as Error),
+          type: 'error',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const handleDownload = async () => {
+      setDownloading(true)
+      try {
+        const { signedUrl } = await storageService.getSignedUrl(file._id, 'attachment')
+        window.open(signedUrl, '_blank')
+      } catch (error) {
+        Notification({
+          message: 'Failed to download file',
+          description: extractErrorMessage(error as Error),
+          type: 'error',
+        })
+      } finally {
+        setDownloading(false)
+      }
+    }
+
+    return (
+      <DateText style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <Text type="secondary" style={{ fontSize: '12px', color: '#8c8c8c' }}>
+          {file.name}
+        </Text>
+        <Box style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {loading ? (
+            <Spin size="small" />
+          ) : (
+            <Icon.EyeOutlined onClick={handleView} style={{ cursor: 'pointer', fontSize: '14px', color: '#8c8c8c' }} />
+          )}
+          {downloading ? (
+            <Spin size="small" />
+          ) : (
+            <Icon.DownloadOutlined
+              onClick={handleDownload}
+              style={{ cursor: 'pointer', fontSize: '14px', color: '#8c8c8c' }}
+            />
+          )}
+        </Box>
+      </DateText>
+    )
+  }
+
+  const files = kind === 'notes' ? getFilesFromReport() : []
 
   const renderCardContent = () => (
     <>
-      <Popover content={title}>
-        <Title>{truncateFileName(title)}</Title>
+      <Popover content={reportName}>
+        <Title>{truncateFileName(reportName)}</Title>
       </Popover>
 
-      {report.fileId && <Tag color="red">{fileType}</Tag>}
+      {firstFile && <Tag color="red">{fileType}</Tag>}
+
+      {kind === 'notes' && files.length > 0 && (
+        <Box style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {files.map((file) => (
+            <FileItem key={file._id} file={file} />
+          ))}
+        </Box>
+      )}
 
       <Header>
         <DateText>{moment(report.createdAt).format('DD MMM YYYY')}</DateText>

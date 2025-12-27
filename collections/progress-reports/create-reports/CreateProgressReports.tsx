@@ -45,7 +45,7 @@ export const CreateProgressReports = () => {
   const [notes, setNotes] = useState('')
   const [reportContent, setReportContent] = useState('')
   const [originalContent, setOriginalContent] = useState('')
-  const [fileId, setFileId] = useState(null)
+  const [fileIds, setFileIds] = useState<string[]>([])
   const [reportName, setReportName] = useState('Progress Report')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -129,7 +129,7 @@ export const CreateProgressReports = () => {
       )
       setReportContent(result.content)
       setOriginalContent(result.originalContent || '')
-      setFileId(result.fileId || null)
+      setFileIds(result.fileIds || [])
       setApiSuccess(true)
     } catch (error) {
       if (isValidationError(error)) return
@@ -171,7 +171,7 @@ export const CreateProgressReports = () => {
         clientId: selectedClient?._id,
         reportType: ReportType.PROGRESS,
         reportName,
-        fileId: fileId || undefined,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
         originalContent,
         content: reportContent,
         skills: selectedSkills,
@@ -188,7 +188,7 @@ export const CreateProgressReports = () => {
       // Reset form state
       setReportContent('')
       setOriginalContent('')
-      setFileId(null)
+      setFileIds([])
       setReportName('Progress Report')
       setUploadedFile(null)
       setNotes('')
@@ -206,7 +206,7 @@ export const CreateProgressReports = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [selectedClient, fileId, reportName, reportContent, originalContent, organizationId, selectedSkills])
+  }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedClient) {
@@ -294,14 +294,14 @@ export const CreateProgressReports = () => {
     <Fragment>
       <StyledContainer>
         <StyledContentWrapper>
-          <StyledBackLink href={ROUTE.PROGRESS_REPORTS}>
+          {/* <StyledBackLink href={ROUTE.PROGRESS_REPORTS}>
             <StyledBackIcon>
               <StyledBackIconInner>
                 <Icon.LeftOutlined />
               </StyledBackIconInner>
             </StyledBackIcon>
             Back to Reports
-          </StyledBackLink>
+          </StyledBackLink> */}
 
           <StyledProgressTitle level={2}>Progress Report</StyledProgressTitle>
 

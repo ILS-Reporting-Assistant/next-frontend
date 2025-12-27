@@ -8,7 +8,7 @@ export const Avatar: React.FC<AvatarProps> = (props) => {
   } else {
     return (
       <AntAvatar {...props} src={null}>
-        {props.name?.[0]?.toUpperCase() || ''}
+        {props.name || ''}
       </AntAvatar>
     )
   }

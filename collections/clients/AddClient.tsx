@@ -114,7 +114,7 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
             style={{ width: '100%', height: '40px' }}
             placeholder="Select end date"
             format="YYYY-MM-DD"
-            popupStyle={{ height: '250px' }}
+            popupStyle={{ height: '340px' }}
           />
         </FormItem>
       </StyledForm>
