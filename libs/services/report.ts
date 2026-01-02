@@ -212,17 +212,32 @@ export const reportService = {
     reportContent: string,
     revisionRequestValue: string,
     reportType?: string,
+    onProgress?: (progress: { stage: string; message: string; progress?: number }) => void,
   ): Promise<{ revisedContent: string }> {
-    const { data } = await httpClient.post<ApiResponse<{ revisedContent: string }>>(
-      ENDPOINT.REPORTS.REQUEST_AI_REVISION,
-      {
+    // Get access token from store
+    const { accessToken } = store.getState().user
+
+    const response = await fetch(`${httpClient.defaults.baseURL}${ENDPOINT.REPORTS.REQUEST_AI_REVISION}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
         originalContent,
         reportContent,
         revisionRequestValue,
         reportType,
-      },
-    )
-    return data.data
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(errorData.message || 'Failed to revise report')
+    }
+
+    return processSSEResponse<{ revisedContent: string }>(response, onProgress)
   },
   async getReportsByClientId(clientId: string, query?: ReportsByClientQuery): Promise<ReportsByClientResponse> {
     const { data } = await httpClient.get<ApiResponse<ReportsByClientResponse>>(ENDPOINT.REPORTS.BY_CLIENT(clientId), {

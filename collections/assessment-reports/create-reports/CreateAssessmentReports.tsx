@@ -36,7 +36,7 @@ export const CreateAssessmentReports = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [clients, setClients] = useState([])
   const [clientsLoading, setClientsLoading] = useState(false)
-  const [selectedSkills, setSelectedSkills] = useState(popularSkills)
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState([])
   const [notes, setNotes] = useState('')
   const [reportContent, setReportContent] = useState('')

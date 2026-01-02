@@ -1,4 +1,4 @@
-import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification, TipTap, Spin } from '@app/components'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
 import { useEffect, useState, useRef } from 'react'
 import { extractErrorMessage } from '../../../libs/services/auth'
 import { reportService } from '../../../libs/services/report'
@@ -13,12 +13,8 @@ import {
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
-  StyledCopyButton,
   StyledCopyDownloadContainer,
-  StyledDownloadButton,
   StyledSaveButton,
-  StyledFinalReportHeading,
-  StyledFullscreenButton,
   StyledFullscreenModal,
   StyledFullscreenModalContent,
   StyledFullscreenReportName,
@@ -41,10 +37,6 @@ import {
   StyledSuccessOverlay,
   StyledSuccessOverlayContent,
   StyledStarIconContainer,
-  StyledProgressStep,
-  StyledCheckCircle,
-  StyledProgressStepText,
-  StyledOverlayProgressStepsContainer,
 } from './elements'
 import { useReportEditor } from '@app/hooks'
 
@@ -176,6 +168,12 @@ export const ReviewRevice = ({
         reportContent,
         revisionRequest,
         reportType,
+        (progress) => {
+          if (progress.stage === 'completed') {
+            setRevisionApiSuccess(true)
+            setIsRequestingRevision(false)
+          }
+        },
       )
 
       const revisedContent = result.revisedContent || reportContent
@@ -185,16 +183,15 @@ export const ReviewRevice = ({
         onReportContentChange(revisedContent)
       }
 
-      // Set API success to trigger success screen animation
-      setRevisionApiSuccess(true)
+      if (!revisionApiSuccess) {
+        setRevisionApiSuccess(true)
+      }
       setIsRequestingRevision(false)
 
-      // Note: Success screen will auto-hide via handleRevisionSuccessComplete callback
       Notification({
         message: 'Report revised successfully',
         type: 'success',
       })
-      // Clear the revision request input
       setRevisionRequest('')
     } catch (error) {
       setShowRevisionSuccess(false)
@@ -206,7 +203,6 @@ export const ReviewRevice = ({
       })
     } finally {
       setIsRequestingRevision(false)
-      setShowRevisionSuccess(false)
     }
   }
 

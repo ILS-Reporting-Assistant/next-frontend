@@ -1,10 +1,12 @@
-import { Box } from '@app/components'
+import { Box, Spacer } from '@app/components'
 import { SkillsProps } from '@app/types'
 import { popularSkills } from '@app/utils'
+import { useEffect, useState } from 'react'
 import {
   StyledPopularSkillsContainer,
   StyledPopularSkillsLabel,
   StyledPopularSkillTag,
+  StyledSelectAllButton,
   StyledSelectedSkillsContainer,
   StyledSelectedSkillsLabel,
   StyledSelectedSkillsList,
@@ -14,6 +16,8 @@ import {
 } from './elements'
 
 export const Skills = ({ selectedSkills = [], onSkillsChange }: SkillsProps) => {
+  const [isAllSkillsSelected, setIsAllSkillsSelected] = useState(false)
+
   const handleSelectSkill = (value: string) => {
     if (!selectedSkills.includes(value) && onSkillsChange) {
       onSkillsChange([...selectedSkills, value])
@@ -31,6 +35,25 @@ export const Skills = ({ selectedSkills = [], onSkillsChange }: SkillsProps) => 
       handleSelectSkill(skill)
     }
   }
+
+  const handleSelectAllSkills = () => {
+    if (!onSkillsChange) return
+    if (isAllSkillsSelected) {
+      onSkillsChange([])
+      setIsAllSkillsSelected(false)
+    } else {
+      onSkillsChange(popularSkills)
+      setIsAllSkillsSelected(true)
+    }
+  }
+
+  useEffect(() => {
+    if (selectedSkills.length === popularSkills.length) {
+      setIsAllSkillsSelected(true)
+    } else {
+      setIsAllSkillsSelected(false)
+    }
+  }, [selectedSkills])
 
   return (
     <>
@@ -64,8 +87,13 @@ export const Skills = ({ selectedSkills = [], onSkillsChange }: SkillsProps) => 
               </Option>
             ))}
         </StyledSkillsSelect> */}
-
-        <StyledPopularSkillsLabel>Popular Skills</StyledPopularSkillsLabel>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <StyledPopularSkillsLabel>Popular Skills</StyledPopularSkillsLabel>
+          <StyledSelectAllButton onClick={() => handleSelectAllSkills()}>
+            {isAllSkillsSelected ? 'Deselect All' : 'Select All'}
+          </StyledSelectAllButton>
+        </Box>
+        <Spacer value={16} />
         <StyledPopularSkillsContainer>
           {popularSkills.map((skill) => (
             <StyledPopularSkillTag key={skill} onClick={() => handlePopularSkillClick(skill)}>

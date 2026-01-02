@@ -1,21 +1,21 @@
-import styled from 'styled-components'
+import { Box, Button, Input, Link, List, Modal, Row, Select, Tag, Text, TextArea, TipTap, Title } from '@app/components'
 import { maxTablet } from '@app/styles'
-import { TitleProps } from 'antd/es/typography/Title'
-import { Row, Title, Text, Link, Box, Button, List, Select, Tag, Input, TextArea, Modal, TipTap } from '@app/components'
 import {
-  RowProps,
-  TextProps,
-  LinkProps,
   BoxProps,
   ButtonProps,
+  InputProps,
+  LinkProps,
   ListProps,
+  ModalProps,
+  RowProps,
   SelectProps,
   TagProps,
-  InputProps,
   TextAreaProps,
-  ModalProps,
+  TextProps,
   TipTapProps,
 } from '@app/types'
+import { TitleProps } from 'antd/es/typography/Title'
+import styled from 'styled-components'
 
 export const StyledContainer = styled((props: RowProps) => <Row {...props} />)`
   background: ${(props) => props.theme.color.background};
@@ -1255,4 +1255,14 @@ export const StyledProgressReportSelect = styled((props: SelectProps<any>) => <S
 export const StyledEmptyProgressReportsMessage = styled((props: TextProps) => <Text {...props} />)`
   color: #999;
   font-style: italic;
+`
+
+export const StyledSelectAllButton = styled((props: ButtonProps) => <Button {...props} />)`
+  padding: 0 16px;
+  height: 32px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
 `

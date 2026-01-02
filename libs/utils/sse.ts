@@ -1,10 +1,10 @@
 import { GenerateAssessmentReportResponse } from '../types/collections/create-reports'
 
 // Helper method to process SSE response
-export const processSSEResponse = async (
+export const processSSEResponse = async <T = GenerateAssessmentReportResponse>(
   response: Response,
   onProgress?: (progress: { stage: string; message: string; progress?: number }) => void,
-): Promise<GenerateAssessmentReportResponse> => {
+): Promise<T> => {
   // Handle SSE stream
   const reader = response.body?.getReader()
   const decoder = new TextDecoder()
@@ -14,7 +14,7 @@ export const processSSEResponse = async (
   }
 
   let buffer = ''
-  let result: GenerateAssessmentReportResponse | null = null
+  let result: T | null = null
   let currentEvent: string | null = null
 
   while (true) {
