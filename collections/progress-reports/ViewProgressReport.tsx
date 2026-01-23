@@ -1,11 +1,7 @@
 import { useDownloadReport, useReportEditor } from '@app/hooks'
-import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
-import { ROUTE } from '@app/data'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem } from '@app/components'
 import { ViewProgressReportProps } from '@app/types'
 import {
-  StyledBackIcon,
-  StyledBackIconInner,
-  StyledBackLink,
   StyledButton,
   StyledButtonContainer,
   StyledButtonContainerWrapper,

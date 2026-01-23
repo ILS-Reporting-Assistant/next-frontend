@@ -100,7 +100,7 @@ export const Reports: React.FC<ReportsProps> = ({ clientId }) => {
     <Box>
       {reports.map((report) => (
         <React.Fragment key={report._id}>
-          <ReportCard report={report} />
+          <ReportCard report={report} kind="reports" />
           <Spacer value={16} />
         </React.Fragment>
       ))}

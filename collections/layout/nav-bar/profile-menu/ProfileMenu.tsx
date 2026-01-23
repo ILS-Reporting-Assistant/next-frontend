@@ -1,20 +1,22 @@
-import { DownOutlined, ExclamationCircleOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { ExclamationCircleOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Dropdown, Modal, Space, Text } from '@app/components'
 import { IStore, logout } from '@app/redux'
 import type { MenuProps } from '@app/types'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
 import {
   StyledBadge,
   StyledButton,
-  StyledText,
   StyledModalCancelButton,
   StyledModalConfirmButton,
   StyledModalFooter,
+  StyledProfileHeaderSpace,
+  StyledProfileNameText,
+  StyledProfileTag,
 } from './elements'
 import { ROUTE } from '@app/data'
+import { AccountType, UserRole } from '@app/enums'
 
 export const ProfileMenu: React.FC = () => {
   const { color, trigger, user } = useSelector((state: IStore) => state)
@@ -44,13 +46,31 @@ export const ProfileMenu: React.FC = () => {
     router.push(`${ROUTE.ACCOUNT_SETTING}?tab=profile`)
   }
 
+  const getLabel = () => {
+    let displayName = ''
+
+    if (user?.type === AccountType.INDIVIDUAL) {
+      displayName = 'Individual'
+    } else if (user?.type === AccountType.ORGANIZATION) {
+      if (user?.currentOrganizationRole === UserRole.OWNER) {
+        displayName = 'Organization Owner'
+      } else if (user?.currentOrganizationRole === UserRole.ADMIN) {
+        displayName = 'Organization Member'
+      }
+    }
+    return { displayName }
+  }
+
   const items: MenuProps['items'] = [
     {
       key: '1',
       label: (
         <>
-          <Space direction="vertical" size={4}>
-            <Text>{user?.firstName || user?.email?.split('@')?.[0]}</Text>
+          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+            <StyledProfileHeaderSpace>
+              <StyledProfileNameText>{user?.firstName || user?.email?.split('@')?.[0]}</StyledProfileNameText>
+              <StyledProfileTag>{getLabel().displayName}</StyledProfileTag>
+            </StyledProfileHeaderSpace>
             <Text type="secondary">{user.email}</Text>
           </Space>
         </>

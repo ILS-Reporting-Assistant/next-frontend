@@ -2,7 +2,6 @@ import { Box, Drawer, Spacer, TabPane, Tabs, Text } from '@app/components'
 import { IStore } from '@app/redux'
 import { ViewClientProps } from '@app/types'
 import { getAvatarText, getClientName } from '@app/utils'
-import moment from 'moment'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -27,11 +26,6 @@ export const ViewClient = ({ open, setOpen, client }: ViewClientProps) => {
     }
   }, [tab])
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
-    return moment(dateString).format('MM-DD-YYYY')
-  }
-
   const handleClose = () => {
     setOpen(false)
     setActiveTab('status')
@@ -54,7 +48,7 @@ export const ViewClient = ({ open, setOpen, client }: ViewClientProps) => {
         <TabPane tab={'Notes'} key="notes">
           <Notes clientId={client?._id} />
         </TabPane>
-        <TabPane tab={'Reports'} key="Reports">
+        <TabPane tab={'Reports'} key="reports">
           <Reports clientId={client?._id} />
         </TabPane>
       </Tabs>

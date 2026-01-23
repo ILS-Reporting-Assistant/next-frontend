@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
 import { store, logout, refreshTokens as refreshTokensAction } from '@app/redux'
 import { AuthRequestConfig, RefreshResponse } from '@app/types'
-import { ENDPOINT } from '@app/data'
+import { ENDPOINT, ROUTE } from '@app/data'
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5002'
 
@@ -79,7 +79,8 @@ httpClient.interceptors.response.use(
       if (authConfig._retry) {
         store.dispatch(logout())
         delete httpClient.defaults.headers.common.Authorization
-        return Promise.reject(error)
+        window.location.href = ROUTE.AUTH.SIGN_IN
+        return Promise.resolve({ data: {}, status: 401, statusText: 'Unauthorized', headers: {}, config: authConfig })
       }
 
       authConfig._retry = true
@@ -92,7 +93,8 @@ httpClient.interceptors.response.use(
         if (!tokens) {
           store.dispatch(logout())
           delete httpClient.defaults.headers.common.Authorization
-          return Promise.reject(error)
+          window.location.href = ROUTE.AUTH.SIGN_IN
+          return Promise.resolve({ data: {}, status: 401, statusText: 'Unauthorized', headers: {}, config: authConfig })
         }
 
         const headers = (authConfig.headers ?? {}) as Record<string, string>
@@ -104,7 +106,8 @@ httpClient.interceptors.response.use(
         refreshPromise = null
         store.dispatch(logout())
         delete httpClient.defaults.headers.common.Authorization
-        return Promise.reject(refreshError)
+        window.location.href = ROUTE.AUTH.SIGN_IN
+        return Promise.resolve({ data: {}, status: 401, statusText: 'Unauthorized', headers: {}, config: authConfig })
       }
     }
 

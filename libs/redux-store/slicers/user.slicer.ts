@@ -14,6 +14,7 @@ const initialState: IUser = {
   type: '',
   emailVerifiedAt: null,
   currentOrganizationId: '',
+  isLoggingOut: false,
 }
 
 export const userSlicer = createSlice({
@@ -21,6 +22,7 @@ export const userSlicer = createSlice({
   name: 'user',
   reducers: {
     login: (state, action: PayloadAction<IUser>) => {
+      state.isLoggingOut = false
       state.accessToken = action.payload.accessToken
       state.email = action.payload.email
       state.uid = action.payload.uid
@@ -31,6 +33,7 @@ export const userSlicer = createSlice({
       state.emailVerifiedAt = action.payload.emailVerifiedAt
     },
     logout: (state) => {
+      state.isLoggingOut = true
       state.accessToken = undefined
       state.email = undefined
       state.uid = undefined
@@ -50,6 +53,9 @@ export const userSlicer = createSlice({
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
     },
+    setEmailVerified: (state, action: PayloadAction<string>) => {
+      state.emailVerifiedAt = action.payload
+    },
     setCurrentOrganization: (state, action: PayloadAction<{ organizationId: string; role?: UserRole | string }>) => {
       state.currentOrganizationId = action.payload.organizationId
       if (action.payload.role) {
@@ -59,6 +65,6 @@ export const userSlicer = createSlice({
   },
 })
 
-export const { login, logout, userUpdate, refreshTokens, setCurrentOrganization } = userSlicer.actions
+export const { login, logout, userUpdate, refreshTokens, setCurrentOrganization, setEmailVerified } = userSlicer.actions
 
 export default userSlicer.reducer

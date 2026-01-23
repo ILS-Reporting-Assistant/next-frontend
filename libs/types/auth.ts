@@ -58,3 +58,8 @@ export type ResetPasswordPayload = {
 export type ForgotPasswordPayload = {
   email: string
 }
+
+export type ChangePasswordPayload = {
+  currentPassword: string
+  newPassword: string
+}

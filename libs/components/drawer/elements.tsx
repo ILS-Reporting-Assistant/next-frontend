@@ -38,7 +38,13 @@ export const StyledDrawer = styled((props: SideDrawerProps) => {
 
   .ant-drawer-close {
     height: 100%;
-    color: #fff;
+    color: #fff !important;
+    margin-right: 0 !important;
+    padding: 0px !important;
+
+    &:hover {
+      color: #fff !important;
+    }
   }
 
   .ant-drawer-body {

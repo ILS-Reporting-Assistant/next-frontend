@@ -1,6 +1,6 @@
 /* eslint-disable indent */
-import { Box, Button, Dropdown, Icon, Modal, Notification, Spacer, Table, Text, Title } from '@app/components'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Box, Button, Dropdown, Icon, Modal, Notification, Spacer, Table, Text, Title, Tooltip } from '@app/components'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { StyledFlexContainer, StyledSearch, StyledClientAvatar } from './elements'
 import { Client } from '@app/types'
 import { useSelector } from 'react-redux'
@@ -11,6 +11,7 @@ import { ViewClient } from './ViewClient'
 import { clientsService, extractErrorMessage } from '@app/services'
 import { getAvatarText, getClientName, isValidationError } from '@app/utils'
 import moment from 'moment'
+import { usePlanUsage } from '../layout'
 
 export const Clients = () => {
   const { color, user } = useSelector((state: IStore) => state)
@@ -18,6 +19,7 @@ export const Clients = () => {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [modalOpen, setModalOpen] = useState(false)
@@ -27,6 +29,7 @@ export const Clients = () => {
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
+  const { refresh, usage } = usePlanUsage()
 
   const organizationId = user.currentOrganizationId
 
@@ -36,10 +39,11 @@ export const Clients = () => {
       const response = await clientsService.getOrganizationClients(organizationId, {
         page: currentPage,
         limit: 10,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
       })
       setClients(response.data?.clients || [])
       setTotal(response.data?.total || 0)
+      refresh()
     } catch (error) {
       if (isValidationError(error)) return
 
@@ -51,17 +55,25 @@ export const Clients = () => {
     } finally {
       setLoading(false)
     }
-  }, [organizationId, currentPage, search])
+  }, [organizationId, currentPage, debouncedSearch])
 
   useEffect(() => {
-    if (search && currentPage !== 1) {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300) // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  useEffect(() => {
+    if (debouncedSearch && currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [search, currentPage])
+  }, [debouncedSearch])
 
   useEffect(() => {
     fetchData()
-  }, [currentPage, search])
+  }, [fetchData])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -126,6 +138,21 @@ export const Clients = () => {
       setModalLoading(false)
     }
   }
+
+  const buttonState = useMemo(() => {
+    const isFreePlan = usage?.plan?.amount === 0
+    const limitReached = usage?.remainingActiveClients === 0
+    const disabled = (isFreePlan && limitReached) || limitReached
+
+    let tooltipMessage: string | undefined
+    if (isFreePlan && limitReached) {
+      tooltipMessage = 'Please upgrade your plan to add more active clients'
+    } else if (limitReached) {
+      tooltipMessage = 'You have reached the limit for creating active clients'
+    }
+
+    return { disabled, tooltipMessage }
+  }, [usage?.plan?.amount, usage?.remainingActiveClients])
 
   const clientColumns = [
     {
@@ -204,7 +231,11 @@ export const Clients = () => {
       <ViewClient open={viewDrawerOpen} setOpen={setViewDrawerOpen} client={viewingClient} />
       <StyledFlexContainer>
         <Title level={2}>Clients</Title>
-        <Button onClick={() => setOpen(true)}>Add Client</Button>
+        <Tooltip title={buttonState.tooltipMessage}>
+          <Button onClick={() => setOpen(true)} disabled={buttonState.disabled}>
+            Add Client
+          </Button>
+        </Tooltip>
       </StyledFlexContainer>
       <Spacer value={16} />
       <Box display="flex" alignItems="center">
@@ -242,9 +273,9 @@ export const Clients = () => {
       >
         <Text>
           {selectedClient
-            ? `Are you sure you want to delete the client ${getClientName(
+            ? `Are you sure you want to delete the client "${getClientName(
                 selectedClient,
-              )}? This action cannot be undone.`
+              )}"? All reports related to this client will also be deleted. This action cannot be undone.`
             : ''}
         </Text>
       </Modal>

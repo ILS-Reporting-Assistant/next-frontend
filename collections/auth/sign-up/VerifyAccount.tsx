@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import { authService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
 import { useDispatch } from 'react-redux'
-import { logout } from '@app/redux'
+import { logout, setEmailVerified } from '@app/redux'
 
 export const VerifyAccount = () => {
   const router = useRouter()
@@ -30,6 +30,9 @@ export const VerifyAccount = () => {
     try {
       setIsVerifying(true)
       const data = await authService.verifyOtp({ otp })
+
+      dispatch(setEmailVerified(new Date().toISOString()))
+
       Notification({
         message: 'Email verified successfully',
         description: data.message ?? 'Your email has been verified. You can now access your account.',
@@ -54,7 +57,11 @@ export const VerifyAccount = () => {
     try {
       setIsResending(true)
       await authService.resendOtp()
-      Notification({ message: 'Code sent', description: 'A new verification code has been sent to your email.' })
+      Notification({
+        message: 'Code sent',
+        description: 'A new verification code has been sent to your email.',
+        type: 'success',
+      })
     } catch (error) {
       if (isValidationError(error)) return
 

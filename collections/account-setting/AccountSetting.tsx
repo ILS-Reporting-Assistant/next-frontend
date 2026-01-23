@@ -1,9 +1,11 @@
-import { CreditCardOutlined, DollarOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
+import { CreditCardOutlined, DollarOutlined, UserOutlined } from '@ant-design/icons'
 import { Spacer, TabPane } from '@app/components'
+import { AccountType, UserRole } from '@app/enums'
+import { IStore } from '@app/redux'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { StyledContainer, StyledTabLabel, StyledTabs, StyledTitle } from './elements'
-import { ChangePasswordTab } from './change-password'
 import { MyProfileTab } from './my-profile'
 import { PaymentMethodsTab } from './payment-methods'
 import { SubscriptionPlansTab } from './subscription-plans'
@@ -12,9 +14,16 @@ export const AccountSetting: React.FC = () => {
   const router = useRouter()
   const { tab } = router.query
   const [activeTab, setActiveTab] = useState('profile')
+  const { user } = useSelector((state: IStore) => state)
+  const isOrganizationMember =
+    user?.type === AccountType.ORGANIZATION &&
+    !!user?.currentOrganizationRole &&
+    user.currentOrganizationRole !== UserRole.OWNER
 
   useEffect(() => {
-    if (tab === 'subscription') {
+    if (isOrganizationMember && (tab === 'subscription' || tab === 'payment')) {
+      setActiveTab('profile')
+    } else if (tab === 'subscription') {
       setActiveTab('subscription')
     } else if (tab === 'payment') {
       setActiveTab('payment')
@@ -23,7 +32,7 @@ export const AccountSetting: React.FC = () => {
     } else if (tab === 'password') {
       setActiveTab('password')
     }
-  }, [tab])
+  }, [isOrganizationMember, tab])
 
   return (
     <StyledContainer>
@@ -36,12 +45,16 @@ export const AccountSetting: React.FC = () => {
         {/* <TabPane tab={<StyledTabLabel>Change Password</StyledTabLabel>} icon={<LockOutlined />} key="password">
           <ChangePasswordTab />
         </TabPane> */}
-        <TabPane tab={<StyledTabLabel>Subscription Plans</StyledTabLabel>} icon={<DollarOutlined />} key="subscription">
-          <SubscriptionPlansTab />
-        </TabPane>
-        <TabPane tab={<StyledTabLabel>Payment Methods</StyledTabLabel>} icon={<CreditCardOutlined />} key="payment">
-          <PaymentMethodsTab />
-        </TabPane>
+        {!isOrganizationMember && (
+          <TabPane tab={<StyledTabLabel>Subscription Plans</StyledTabLabel>} icon={<DollarOutlined />} key="subscription">
+            <SubscriptionPlansTab />
+          </TabPane>
+        )}
+        {!isOrganizationMember && (
+          <TabPane tab={<StyledTabLabel>Payment Methods</StyledTabLabel>} icon={<CreditCardOutlined />} key="payment">
+            <PaymentMethodsTab />
+          </TabPane>
+        )}
       </StyledTabs>
     </StyledContainer>
   )

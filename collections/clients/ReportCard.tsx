@@ -1,6 +1,19 @@
 import React, { useState } from 'react'
 import { DateText, Footer, Header, StyledCard, Title, UserName, StyledBadgeRibbon } from './elements'
-import { Box, Dropdown, Icon, Menu, MenuItem, Notification, Popover, Spin, Tag, Text } from '@app/components'
+import {
+  Box,
+  Button,
+  Dropdown,
+  Icon,
+  Menu,
+  MenuItem,
+  Notification,
+  Popover,
+  Spin,
+  Tag,
+  Text,
+  Modal,
+} from '@app/components'
 import moment from 'moment'
 import { getFullName, getFileTypeFromContent, truncateFileName } from '@app/utils'
 import { ReportCardProps } from '@app/types'
@@ -16,11 +29,16 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
   const { color, user } = useSelector((state: IStore) => state)
   const [isDownloadingDocx, setIsDownloadingDocx] = useState(false)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
   // Support both old fileId and new fileIds for backward compatibility
   const firstFile = report.fileIds && report.fileIds.length > 0 ? report.fileIds[0] : report.fileId || null
   const fileType = getFileTypeFromContent(firstFile?.contentType, firstFile?.name)
 
   const viewReport = () => {
+    if (kind === 'notes') {
+      setIsNoteModalOpen(true)
+      return
+    }
     if (report?.reportType === ReportType.ASSESSMENT) {
       router.push(`${ROUTE.VIEW_ASSESSMENT_REPORT}?reportId=${report._id}`)
     } else if (report?.reportType === ReportType.ISP) {
@@ -30,10 +48,13 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
     }
   }
 
-  const reportTypes = () => {
-    if (report.reportType === 'assessment') {
+  const getBadgeText = () => {
+    if (kind === 'notes') {
+      return 'Note'
+    }
+    if (report.reportType === ReportType.ASSESSMENT) {
       return 'Initial Assessment Report'
-    } else if (report.reportType === 'progress') {
+    } else if (report.reportType === ReportType.PROGRESS) {
       return 'Progress Report'
     } else {
       return 'Annual ISP Review'
@@ -44,15 +65,17 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
   const reportName = report?.reportName
 
   const handleDownloadDocx = async () => {
-    if (!reportContent) return
+    const downloadContent = kind === 'notes' ? report.originalContent : reportContent
+    if (!downloadContent) return
 
     setIsDownloadingDocx(true)
     try {
-      const blob = await reportService.generateDocument(reportContent)
+      const blob = await reportService.generateDocument(downloadContent)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${reportName || 'progress-report'}.docx`
+      const filename = kind === 'notes' ? 'Note' : reportName || 'progress-report'
+      a.download = `${filename}.docx`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -67,15 +90,17 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
   }
 
   const handleDownloadPdf = async () => {
-    if (!reportContent) return
+    const downloadContent = kind === 'notes' ? report.originalContent : reportContent
+    if (!downloadContent) return
 
     setIsDownloadingPdf(true)
     try {
-      const blob = await reportService.generatePDFDocument(reportContent)
+      const blob = await reportService.generatePDFDocument(downloadContent)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${reportName || 'progress-report'}.pdf`
+      const filename = kind === 'notes' ? 'Note' : reportName || 'progress-report'
+      a.download = `${filename}.pdf`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -216,11 +241,26 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, kind }) => {
     </>
   )
 
-  return kind === 'notes' ? (
-    <StyledBadgeRibbon text={reportTypes() || 'Report'} color={color.primary}>
-      <StyledCard>{renderCardContent()}</StyledCard>
-    </StyledBadgeRibbon>
-  ) : (
-    <StyledCard>{renderCardContent()}</StyledCard>
+  return (
+    <>
+      <StyledBadgeRibbon text={getBadgeText()} color={color.primary}>
+        <StyledCard>{renderCardContent()}</StyledCard>
+      </StyledBadgeRibbon>
+      <Modal
+        title="Note Content"
+        open={isNoteModalOpen}
+        onCancel={() => setIsNoteModalOpen(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setIsNoteModalOpen(false)}>
+            Close
+          </Button>,
+        ]}
+        width={800}
+      >
+        <Box style={{ whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto' }}>
+          {report.originalContent || 'No content available'}
+        </Box>
+      </Modal>
+    </>
   )
 }

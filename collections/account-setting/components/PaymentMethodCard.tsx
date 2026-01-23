@@ -1,7 +1,5 @@
-import { Icon } from '@app/components'
+import { Box, Icon } from '@app/components'
 import type { MenuProps, PaymentMethodCardProps } from '@app/types'
-import { ECardBrand } from '@app/enums'
-import { MasterCardImage, VisaCardImage } from '~public'
 import React from 'react'
 import {
   StyledCardExpiry,
@@ -17,6 +15,18 @@ import {
   StyledRemoveCardLink,
   StyledCardDropdown,
 } from './elements'
+import {
+  AmexCardImage,
+  DiscoverCardImage,
+  DinersClubCardImage,
+  JCBCardImage,
+  MaestroCardImage,
+  MasterCardImage,
+  UnionPayCardImage,
+  VisaCardImage,
+  DefaultCardImage,
+} from '~public'
+import { ECardBrand } from '@app/enums'
 
 export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   cardholderName,
@@ -56,12 +66,37 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
         </StyledCardMenuWrapper>
       </StyledPaymentCardHeader>
 
-      <StyledCardNumber>{cardNumber}</StyledCardNumber>
+      <StyledCardNumber>**** **** **** {cardNumber}</StyledCardNumber>
       <StyledCardExpiryWrapper>
         <StyledCardExpiry>Expiry Date: {expiryDate}</StyledCardExpiry>
-        <StyledCardLogo>{cardBrand === ECardBrand.VISA ? <VisaCardImage /> : <MasterCardImage />}</StyledCardLogo>
+        <StyledCardLogo>
+          {(() => {
+            switch (cardBrand) {
+              case ECardBrand.VISA:
+                return <VisaCardImage />
+              case ECardBrand.MASTERCARD:
+                return <MasterCardImage />
+              case ECardBrand.AMERICAN_EXPRESS:
+                return <AmexCardImage />
+              case ECardBrand.DISCOVER:
+                return <DiscoverCardImage />
+              case ECardBrand.JCB:
+                return <JCBCardImage />
+              case ECardBrand.DINERS_CLUB:
+                return <DinersClubCardImage />
+              case ECardBrand.UNION_PAY:
+                return <UnionPayCardImage />
+              case ECardBrand.MAESTRO:
+                return <MaestroCardImage />
+              default:
+                return <DefaultCardImage />
+            }
+          })()}
+        </StyledCardLogo>
       </StyledCardExpiryWrapper>
-      <StyledRemoveCardLink onClick={onRemove}>Remove card</StyledRemoveCardLink>
+      <Box>
+        <StyledRemoveCardLink onClick={onRemove}>Remove card</StyledRemoveCardLink>
+      </Box>
     </StyledPaymentCard>
   )
 }

@@ -6,7 +6,7 @@ import { isValidationError } from '@app/utils'
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { StyledFooterContainer, StyledForm, StyledFormInput } from './elements'
-import moment from 'moment'
+import dayjs from 'dayjs'
 
 export const EditClient = ({ open, setOpen, client, onSuccess }: EditClientProps) => {
   const [form] = useForm()
@@ -21,8 +21,8 @@ export const EditClient = ({ open, setOpen, client, onSuccess }: EditClientProps
         firstName: client.firstName,
         lastName: client.lastName,
         email: client.email,
-        startDate: client.startDate ? moment(client.startDate) : undefined,
-        endDate: client.endDate ? moment(client.endDate) : undefined,
+        startDate: client.startDate ? dayjs(client.startDate) : undefined,
+        endDate: client.endDate ? dayjs(client.endDate) : undefined,
       })
     }
   }, [client, open, form])
@@ -52,8 +52,8 @@ export const EditClient = ({ open, setOpen, client, onSuccess }: EditClientProps
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email || undefined,
-        startDate: values.startDate ? moment(values.startDate).startOf('day').format() : undefined,
-        endDate: values.endDate ? moment(values.endDate).endOf('day').format() : undefined,
+        startDate: values.startDate ? dayjs(values.startDate.toDate()).startOf('day').format() : undefined,
+        endDate: values.endDate ? dayjs(values.endDate.toDate()).endOf('day').format() : undefined,
         ...(organizationId ? { organizationId } : {}),
         userId: user.uid,
       }
@@ -115,11 +115,27 @@ export const EditClient = ({ open, setOpen, client, onSuccess }: EditClientProps
         </FormItem>
 
         <FormItem label="Start Date" name="startDate">
-          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select start date" format="YYYY-MM-DD" />
+          <DatePicker
+            style={{ width: '100%', height: '40px' }}
+            placeholder="Select start date"
+            format="YYYY-MM-DD"
+            disabledDate={(current) => {
+              const endDate = form.getFieldValue('endDate')
+              return endDate && current.isAfter(endDate, 'day')
+            }}
+          />
         </FormItem>
 
         <FormItem label="End Date" name="endDate">
-          <DatePicker style={{ width: '100%', height: '40px' }} placeholder="Select end date" format="YYYY-MM-DD" />
+          <DatePicker
+            style={{ width: '100%', height: '40px' }}
+            placeholder="Select end date"
+            format="YYYY-MM-DD"
+            disabledDate={(current) => {
+              const startDate = form.getFieldValue('startDate')
+              return startDate && current.isBefore(startDate, 'day')
+            }}
+          />
         </FormItem>
       </StyledForm>
     </Drawer>

@@ -5,5 +5,6 @@ export enum ECardBrand {
   DISCOVER = 'discover',
   JCB = 'jcb',
   DINERS_CLUB = 'diners',
+  UNION_PAY = 'unionpay',
+  MAESTRO = 'maestro',
 }
-

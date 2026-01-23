@@ -1,4 +1,3 @@
-import { ComponentProps } from 'react'
 
 export interface ReactQuillProps {
   theme?: string

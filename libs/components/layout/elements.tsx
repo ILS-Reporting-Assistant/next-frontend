@@ -57,19 +57,21 @@ export const StyledContent = styled((props: LayoutProps) => {
     }
     if (props.header) {
       styles += `
-        height: calc(100vh - 88px);
+        flex: 1;
+        min-height: 0;
       `
     }
     return styles
   }}
   background: ${(props) => props.theme.color.background};
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   ${boxProperties};
 
   @media only screen and (max-width: ${maxTablet}) {
     padding: 25px;
-    padding-bottom: 50px;
+
   }
 `
 
@@ -100,4 +102,11 @@ export const StyledBanner = styled((props: AlertProps) => <Alert {...props} />)`
       justify-content: center;
     }
   }
+`
+
+export const StyledContentLayout = styled((props: LayoutProps) => <AntLayout {...props} />)`
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 88px);
+  overflow: hidden;
 `

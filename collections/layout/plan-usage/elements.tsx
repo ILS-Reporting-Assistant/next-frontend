@@ -1,5 +1,5 @@
 import { ButtonProps, PlanUsageProps, BoxProps, TextProps } from '@app/types'
-import { Button, Box, Text, Tag } from '@app/components'
+import { Button, Box, Text } from '@app/components'
 import styled from 'styled-components'
 
 export const StyledPlanUsageContainer = styled((props: BoxProps & PlanUsageProps) => (
@@ -74,7 +74,6 @@ export const StyledActiveChip = styled((props: TextProps) => <Text {...props} />
   background: #477e2c;
   padding: 0px 6px;
   color: #477e2c;
-  // padding: 0px 6px;
   height: 17px;
   font-size: 10px;
   line-height: 16px;

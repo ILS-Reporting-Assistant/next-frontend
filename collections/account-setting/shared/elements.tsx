@@ -9,6 +9,12 @@ export const StyledTabContent = styled((props: BoxProps) => <Box {...props} />)`
 export const StyledSectionTitle = styled((props: TextProps) => <Text {...props} />)`
   margin-bottom: 0 !important;
   font-weight: 500;
+  font-size: 22px;
+`
+
+export const StyledSectionLabel = styled((props: TextProps) => <Text {...props} />)`
+  margin-bottom: 0 !important;
+  font-weight: 500;
   font-size: 16px;
 `
 

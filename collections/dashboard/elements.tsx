@@ -12,11 +12,9 @@ export const Label = styled((props: TextProps) => <Text {...props} />)`
   line-height: 24px;
   font-weight: 500;
   padding-top: 8px;
-
-  
 `
 export const StyledText = styled((props: TextProps) => <Text {...props} />)`
-    font-size: 14px;
+  font-size: 14px;
 `
 export const StyledCardText = styled((props: TextProps) => <Text {...props} />)`
   font-size: 18px;
@@ -34,7 +32,7 @@ export const StyledCardText = styled((props: TextProps) => <Text {...props} />)`
 export const StyledRow = styled((props: RowProps) => <Row {...props} />)`
   display: flex;
   flex-wrap: wrap;
-  
+
   .ant-col {
     display: flex;
     flex-direction: column;
@@ -63,6 +61,10 @@ export const StyledBox = styled((props: DashboardStyledBoxProps) => <Box {...pro
   .ant-col {
     display: flex;
     flex-direction: column;
+  }
+
+  @media only screen and (min-width: 992px) and (max-width: 1199px) {
+    min-height: 220px;
   }
 
   @media only screen and (max-width: ${maxTablet}) {
@@ -126,18 +128,23 @@ export const StyledButton = styled((props: ButtonProps) => <Button {...props} />
 `
 
 export const StyledRibbon = styled(Badge.Ribbon)`
-  // Add Figma styles here when provided
-  padding: 4px 10px;
-  height: 28px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border-bottom-right-radius: 3px;
+  &.ant-ribbon-wrapper {
+    height: 100%;
+  }
+
+  .ant-ribbon {
+    padding: 4px 10px;
+    height: 28px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
 `
 
 export const StyledRibbonText = styled((props: TextProps) => <Text {...props} />)`
   color: #313c77;
   font-weight: 800;
-    font-size: 12px;
+  font-size: 12px;
 `
 
 export const StyledRibbonIcon = styled((props: TextProps) => <Text {...props} />)`
@@ -160,7 +167,7 @@ export const StyledBackIconInner = styled((props: TextProps) => <Text {...props}
 
 export const StyledWelcomeTitle = styled((props: TitleProps) => <Title {...props} />)`
   font-size: 28px !important;
-  
+
   @media only screen and (max-width: ${maxTablet}) {
     font-size: 24px !important;
   }

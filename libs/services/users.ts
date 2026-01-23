@@ -11,6 +11,7 @@ import {
   CompleteInvitationPayload,
   CompleteInvitationResponse,
 } from '../types'
+import { User } from '../types/api/users'
 import { httpClient } from './httpClient'
 import { ENDPOINT } from '@app/data'
 
@@ -18,7 +19,7 @@ export const usersService = {
   async getOrganizationUsers(organizationId: string, query?: UsersListQuery) {
     const { data } = await httpClient.get<ApiResponse<UsersListResponse>>(
       ENDPOINT.ORGANIZATIONS.USERS(organizationId),
-      { params: query }
+      { params: query },
     )
     return data
   },
@@ -26,7 +27,7 @@ export const usersService = {
   async getOrganizationInvitations(organizationId: string, query?: UsersListQuery) {
     const { data } = await httpClient.get<ApiResponse<InvitationsListResponse>>(
       ENDPOINT.ORGANIZATIONS.INVITATIONS(organizationId),
-      { params: query }
+      { params: query },
     )
     return data
   },
@@ -34,7 +35,7 @@ export const usersService = {
   async createInvitation(organizationId: string, payload: CreateInvitationPayload) {
     const { data } = await httpClient.post<ApiResponse<CreateInvitationResponse>>(
       ENDPOINT.INVITATIONS.CREATE(organizationId),
-      payload
+      payload,
     )
     return data
   },
@@ -42,32 +43,42 @@ export const usersService = {
   async resendInvitation(organizationId: string, payload: ResendInvitationPayload) {
     const { data } = await httpClient.post<ApiResponse<ResendInvitationResponse>>(
       ENDPOINT.INVITATIONS.RESEND(organizationId),
-      payload
+      payload,
     )
     return data
   },
 
   async deleteInvitation(organizationId: string, invitationId: string) {
     const { data } = await httpClient.delete<ApiResponse<null>>(
-      ENDPOINT.INVITATIONS.DELETE(organizationId, invitationId)
+      ENDPOINT.INVITATIONS.DELETE(organizationId, invitationId),
     )
     return data
   },
 
   async verifyInvitation(token: string) {
-    const { data } = await httpClient.get<ApiResponse<VerifyInvitationResponse>>(
-      ENDPOINT.INVITATIONS.VERIFY,
-      { params: { token } }
-    )
+    const { data } = await httpClient.get<ApiResponse<VerifyInvitationResponse>>(ENDPOINT.INVITATIONS.VERIFY, {
+      params: { token },
+    })
     return data
   },
 
   async completeInvitation(payload: CompleteInvitationPayload) {
     const { data } = await httpClient.post<ApiResponse<CompleteInvitationResponse>>(
       ENDPOINT.INVITATIONS.COMPLETE,
-      payload
+      payload,
+    )
+    return data
+  },
+
+  async updateProfile(payload: { firstName: string; lastName: string }) {
+    const { data } = await httpClient.patch<ApiResponse<User>>(ENDPOINT.USERS.PROFILE, payload)
+    return data
+  },
+
+  async deleteUserFromOrganization(organizationId: string, userId: string) {
+    const { data } = await httpClient.delete<ApiResponse<null>>(
+      ENDPOINT.ORGANIZATIONS.DELETE_USER(organizationId, userId),
     )
     return data
   },
 }
-

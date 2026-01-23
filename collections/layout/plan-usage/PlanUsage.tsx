@@ -8,7 +8,6 @@ import {
   StyledPlanTitle,
   StyledPlanUsageContainer,
   StyledProgressContainer,
-  StyledRefreshIcon,
   StyledReportsUsed,
   StyledResetInfo,
   StyledResetInfoContainer,
@@ -17,21 +16,45 @@ import {
 } from './elements'
 
 import { ROUTE } from '@app/data'
+import { AccountType, SubscriptionStatus, UserRole } from '@app/enums'
+import { IStore } from '@app/redux'
+import moment from 'moment'
 import { useRouter } from 'next/router'
+import { useSelector } from 'react-redux'
 import { usePlanUsage } from './PlanUsageContext'
 
 export const PlanUsage: React.FC<PlanUsageProps> = ({ isCollapsed = false }) => {
   const router = useRouter()
-  const { reportsUsed, totalReports, isLoading, refresh } = usePlanUsage()
-  const percentUsed = totalReports > 0 ? (reportsUsed / totalReports) * 100 : 0
-  const resetDate = 'Nov 30, 2025'
+  const { user } = useSelector((state: IStore) => state)
+  const { reportsUsed, totalReports, clientsUsed, totalClients, usage } = usePlanUsage()
+
+  const isOrganization = user?.type === AccountType.ORGANIZATION
+
+  const isOrganizationMember =
+    user?.type === AccountType.ORGANIZATION &&
+    !!user?.currentOrganizationRole &&
+    user.currentOrganizationRole !== UserRole.OWNER
+
+  const displayValue = isOrganization
+    ? totalClients
+      ? `${clientsUsed}/${totalClients}`
+      : clientsUsed
+    : totalReports
+    ? `${reportsUsed}/${totalReports}`
+    : reportsUsed
+
+  const displayLabel = isOrganization ? 'Active Clients' : 'Reports Used'
+
+  const percentUsed = isOrganization
+    ? totalClients && totalClients > 0
+      ? (clientsUsed / totalClients) * 100
+      : 0
+    : totalReports && totalReports > 0
+    ? (reportsUsed / totalReports) * 100
+    : 0
 
   const handleViewAllPlans = () => {
     router.push(`${ROUTE.ACCOUNT_SETTING}?tab=subscription`)
-  }
-
-  const handleRefresh = () => {
-    refresh()
   }
 
   if (isCollapsed) {
@@ -45,15 +68,15 @@ export const PlanUsage: React.FC<PlanUsageProps> = ({ isCollapsed = false }) => 
           <StyledCrownIcon>
             <Icon.CrownOutlined />
           </StyledCrownIcon>
-          Starter Plan
+          {usage?.plan?.name}
         </StyledPlanTitle>
-        <StyledRefreshIcon onClick={handleRefresh} style={{ cursor: 'pointer' }}>
+        {/* <StyledRefreshIcon onClick={handleRefresh} style={{ cursor: 'pointer' }}>
           {isLoading ? <Icon.LoadingOutlined spin /> : <Icon.SyncOutlined />}
-        </StyledRefreshIcon>
+        </StyledRefreshIcon> */}
       </StyledPlanHeader>
 
       <StyledReportsUsed>
-        Reports Used {reportsUsed}/{totalReports}
+        {displayLabel} {displayValue}
       </StyledReportsUsed>
       <StyledProgressContainer>
         <Progress percent={percentUsed} showInfo={false} strokeColor="#fff" trailColor="rgba(255, 255, 255, 0.3)" />
@@ -64,16 +87,25 @@ export const PlanUsage: React.FC<PlanUsageProps> = ({ isCollapsed = false }) => 
           <StyledCalendarIcon>
             <Icon.CalendarOutlined />
           </StyledCalendarIcon>
-          <span>Resets: {resetDate}</span>
+          <span>
+            Resets:{' '}
+            {usage?.subscription?.periodEnd && moment(usage?.subscription?.periodEnd).isValid()
+              ? moment(usage?.subscription?.periodEnd).format('MMM D, YYYY')
+              : '-'}
+          </span>
         </StyledResetInfoContainer>
-        <StyledActiveChip>Active</StyledActiveChip>
+        {usage?.subscription?.status === SubscriptionStatus.ACTIVE && <StyledActiveChip>Active</StyledActiveChip>}
+        {usage?.subscription?.status === SubscriptionStatus.TRIALING && <StyledActiveChip>Trialing</StyledActiveChip>}
+        {usage?.subscription?.status === SubscriptionStatus.CANCELED && <StyledActiveChip>Cancelled</StyledActiveChip>}
       </StyledResetInfo>
 
-      <StyledViewAllButtonContainer>
-        <StyledViewAllButton type="default" block onClick={handleViewAllPlans}>
-          View All Plans
-        </StyledViewAllButton>
-      </StyledViewAllButtonContainer>
+      {!isOrganizationMember && (
+        <StyledViewAllButtonContainer>
+          <StyledViewAllButton type="default" block onClick={handleViewAllPlans}>
+            View All Plans
+          </StyledViewAllButton>
+        </StyledViewAllButtonContainer>
+      )}
     </StyledPlanUsageContainer>
   )
 }

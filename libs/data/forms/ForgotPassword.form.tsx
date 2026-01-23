@@ -26,6 +26,10 @@ export const FORGOT_PASSWORD_FORM: IField[] = [
         message: 'Email is required',
         required: true,
       },
+      {
+        message: 'Please enter a valid email',
+        type: 'email',
+      },
     ],
     type: EDynamicFormField.EMAIL,
   },

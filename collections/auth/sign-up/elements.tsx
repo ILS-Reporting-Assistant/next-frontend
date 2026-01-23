@@ -1,4 +1,4 @@
-import { Box, Button, Col, Link, Progress, Row, Text, Title } from '@app/components'
+import { Box, Button, Col, Link, Row, Text, Title } from '@app/components'
 import { maxComputer, maxMobile, maxTablet } from '@app/styles'
 import { BoxProps, ButtonProps, ColProps, LinkProps, RowProps, TextProps } from '@app/types'
 import { TitleProps } from 'antd/es/typography/Title'

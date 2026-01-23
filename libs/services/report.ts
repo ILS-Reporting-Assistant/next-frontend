@@ -198,15 +198,6 @@ export const reportService = {
     const { data } = await httpClient.get<ApiResponse<Report>>(ENDPOINT.REPORTS.GET(reportId))
     return data.data
   },
-  async getReportCount(organizationId?: string): Promise<{ reportsUsed: number; totalReports: number }> {
-    const { data } = await httpClient.get<ApiResponse<{ reportsUsed: number; totalReports: number }>>(
-      ENDPOINT.REPORTS.COUNT,
-      {
-        params: organizationId ? { organizationId } : {},
-      },
-    )
-    return data.data
-  },
   async requestAIRevision(
     originalContent: string,
     reportContent: string,

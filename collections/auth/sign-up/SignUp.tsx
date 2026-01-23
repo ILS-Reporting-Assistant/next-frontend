@@ -6,7 +6,7 @@ import { login, setCurrentOrganization } from '@app/redux'
 import { authService, extractErrorMessage } from '@app/services'
 import { isValidationError } from '@app/utils'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { CompanyLogo } from '~public'
 import {

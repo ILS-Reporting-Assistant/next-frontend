@@ -7,9 +7,8 @@ export const StyledTabLabel = styled((props: BoxProps) => <Box {...props} />)``
 
 export const StyledContainer = styled((props: BoxProps) => <Box {...props} />)`
   width: 100%;
-  max-width: 1200px;
+  max-width: 2200px;
   margin: 0 auto;
-  padding-top: 15px;
 `
 
 export const StyledTitle = styled((props: TextProps) => <Text {...props} />)`
