@@ -2,7 +2,7 @@ import { Notification, Progress } from '@app/components'
 import { ReportType } from '@app/enums'
 import { IStore } from '@app/redux'
 import { clientsService, extractErrorMessage, reportService } from '@app/services'
-import { isValidationError, popularSkills } from '@app/utils'
+import { isValidationError, getLimitErrorMessage } from '@app/utils'
 import {
   ComplianceNotice,
   ReviewRevice,
@@ -27,6 +27,7 @@ import {
 import { useRouter } from 'next/router'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { usePlanUsage } from '../../layout'
 
 export const CreateAssessmentReports = () => {
   const { user } = useSelector((state: IStore) => state)
@@ -49,6 +50,7 @@ export const CreateAssessmentReports = () => {
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
+  const { refresh } = usePlanUsage()
 
   // Fetch clients on mount
   useEffect(() => {
@@ -65,7 +67,7 @@ export const CreateAssessmentReports = () => {
         if (isValidationError(error)) return
         Notification({
           message: 'Failed to fetch clients',
-          description: extractErrorMessage(error),
+          description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
           type: 'error',
         })
       } finally {
@@ -132,7 +134,7 @@ export const CreateAssessmentReports = () => {
       setApiSuccess(false)
       Notification({
         message: 'Failed to extract document',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
     } finally {
@@ -197,12 +199,13 @@ export const CreateAssessmentReports = () => {
       if (isValidationError(error)) return
       Notification({
         message: 'Failed to save report',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
       throw error
     } finally {
       setIsSaving(false)
+      refresh()
     }
   }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 
@@ -234,7 +237,7 @@ export const CreateAssessmentReports = () => {
     } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     } else {
-      window.history.back()
+      router.back()
     }
   }
 

@@ -79,6 +79,7 @@ export const StyledCancelButton = styled((props: ButtonProps) => <Button {...pro
   height: 40px;
   padding: 0 24px;
   font-size: 14px;
+  font-weight: 500;
 
   &:hover,
   &:hover:not(:disabled) {
@@ -97,6 +98,7 @@ export const StyledSaveButton = styled((props: ButtonProps) => <Button {...props
   height: 40px;
   padding: 0 24px;
   font-size: 14px;
+  font-weight: 500;
 
   &:hover,
   &:hover:not(:disabled) {
@@ -144,7 +146,8 @@ export const StyledDeleteButton = styled((props: ButtonProps) => <Button {...pro
   color: white !important;
   border-radius: 2px;
   height: 40px;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 500;
   width: 171px;
 
   &:hover,
@@ -154,4 +157,3 @@ export const StyledDeleteButton = styled((props: ButtonProps) => <Button {...pro
     color: white !important;
   }
 `
-

@@ -3,7 +3,7 @@ import { InputType, ReportType } from '@app/enums'
 import { IStore } from '@app/redux'
 import { clientsService, extractErrorMessage, reportService } from '@app/services'
 import { Report } from '@app/types'
-import { isValidationError } from '@app/utils'
+import { isValidationError, getLimitErrorMessage } from '@app/utils'
 import {
   ComplianceNotice,
   ReviewRevice,
@@ -36,6 +36,7 @@ import {
 import { useRouter } from 'next/router'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { usePlanUsage } from '../../layout'
 
 export const CreateIspReviews = () => {
   const { user } = useSelector((state: IStore) => state)
@@ -62,6 +63,7 @@ export const CreateIspReviews = () => {
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
+  const { refresh } = usePlanUsage()
 
   // Fetch clients on mount
   useEffect(() => {
@@ -77,7 +79,7 @@ export const CreateIspReviews = () => {
         if (isValidationError(error)) return
         Notification({
           message: 'Failed to fetch clients',
-          description: extractErrorMessage(error),
+          description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
           type: 'error',
         })
       } finally {
@@ -117,7 +119,7 @@ export const CreateIspReviews = () => {
         if (isValidationError(error)) return
         Notification({
           message: 'Failed to fetch progress reports',
-          description: extractErrorMessage(error),
+          description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
           type: 'error',
         })
         setProgressReports([])
@@ -213,7 +215,7 @@ export const CreateIspReviews = () => {
 
       Notification({
         message: inputType === InputType.PROGRESS_REPORT ? 'Failed to generate report' : 'Failed to extract document',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
     } finally {
@@ -277,12 +279,13 @@ export const CreateIspReviews = () => {
       if (isValidationError(error)) return
       Notification({
         message: 'Failed to save report',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
       throw error
     } finally {
       setIsSaving(false)
+      refresh()
     }
   }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 

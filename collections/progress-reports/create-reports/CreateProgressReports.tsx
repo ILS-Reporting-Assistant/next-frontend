@@ -1,5 +1,4 @@
-import { Icon, Progress, Notification } from '@app/components'
-import { ROUTE } from '@app/data'
+import { Progress, Notification } from '@app/components'
 import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import {
@@ -10,9 +9,6 @@ import {
   Success,
 } from 'collections/progress-reports/create-reports'
 import {
-  StyledBackIcon,
-  StyledBackIconInner,
-  StyledBackLink,
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
@@ -27,10 +23,11 @@ import {
   StyledStepText,
 } from 'collections/progress-reports/create-reports/elements'
 import { clientsService, reportService, extractErrorMessage } from '@app/services'
-import { isValidationError } from '@app/utils'
+import { isValidationError, getLimitErrorMessage } from '@app/utils'
 import { ReportType } from '@app/enums'
 import { useRouter } from 'next/router'
 import { IStore } from '@app/redux'
+import { usePlanUsage } from '../../layout'
 
 export const CreateProgressReports = () => {
   const { user } = useSelector((state: IStore) => state)
@@ -53,6 +50,7 @@ export const CreateProgressReports = () => {
   const totalSteps = 4
   const progressPercent = showSuccess ? 100 : (currentStep / totalSteps) * 100
   const organizationId = user.currentOrganizationId
+  const { refresh } = usePlanUsage()
 
   // Fetch clients on mount
   useEffect(() => {
@@ -68,7 +66,7 @@ export const CreateProgressReports = () => {
         if (isValidationError(error)) return
         Notification({
           message: 'Failed to fetch clients',
-          description: extractErrorMessage(error),
+          description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
           type: 'error',
         })
       } finally {
@@ -137,7 +135,7 @@ export const CreateProgressReports = () => {
       setApiSuccess(false)
       Notification({
         message: 'Failed to extract document',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
     } finally {
@@ -177,7 +175,7 @@ export const CreateProgressReports = () => {
         skills: selectedSkills,
       }
 
-      const result = await reportService.saveReport(payload)
+      await reportService.saveReport(payload)
       Notification({
         message: 'Report saved successfully',
         type: 'success',
@@ -199,12 +197,13 @@ export const CreateProgressReports = () => {
       if (isValidationError(error)) return
       Notification({
         message: 'Failed to save report',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
       throw error
     } finally {
       setIsSaving(false)
+      refresh()
     }
   }, [selectedClient, fileIds, reportName, reportContent, originalContent, organizationId, selectedSkills])
 

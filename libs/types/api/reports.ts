@@ -6,6 +6,7 @@ export interface ReportsListQuery {
   reportType?: ReportType
   organizationId?: string
   clientId?: string
+  search?: string
 }
 
 export interface Report {

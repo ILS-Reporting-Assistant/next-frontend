@@ -1,44 +1,23 @@
-import { Button, Drawer, FlexContainer, Input, Notification, Select, Spacer, Text, useForm } from '@app/components'
+import { Button, Drawer, FlexContainer, Notification, useForm } from '@app/components'
 import { Form } from 'antd'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
 import { usersService, extractErrorMessage } from '@app/services'
 import { InviteUserFormValues, InviteUserProps } from '@app/types'
-import { isValidationError } from '@app/utils'
-import { StyledFormInput, StyledFormSelect } from './elements'
+import { isValidationError, getLimitErrorMessage } from '@app/utils'
+import { StyledFormInput } from './elements'
 
 export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
   const [form] = useForm()
   const { user } = useSelector((state: IStore) => state)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [invitationUrl, setInvitationUrl] = useState<string | null>(null)
 
   const organizationId = user.currentOrganizationId
 
-  const getFrontendUrl = () => {
-    if (typeof window !== 'undefined') {
-      return window.location.origin
-    }
-    return process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
-  }
-
   const handleCancel = () => {
     form.resetFields()
-    setInvitationUrl(null)
     setOpen(false)
-  }
-
-  const copyToClipboard = (text: string) => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        Notification({
-          message: 'Copied to clipboard',
-          description: 'Invitation URL has been copied to clipboard.',
-          type: 'success',
-        })
-      })
-    }
   }
 
   const handleSubmit = async () => {
@@ -59,13 +38,8 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
         email: values.email,
         firstName: values.firstName,
         lastName: values.lastName,
-        role: values.role,
+        role: 'admin',
       })
-
-      // Generate invitation URL
-      const frontendUrl = getFrontendUrl()
-      const url = `${frontendUrl}/invitation?token=${response.data._id}`
-      setInvitationUrl(url)
 
       Notification({
         message: 'Invitation sent',
@@ -84,7 +58,7 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
 
       Notification({
         message: 'Cannot Send Invitation',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
     } finally {
@@ -129,7 +103,7 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
           <StyledFormInput placeholder="Enter email" />
         </Form.Item>
 
-        <Form.Item label="Role*" name="role" rules={[{ required: true, message: 'Select role' }]}>
+        {/* <Form.Item label="Role*" name="role" rules={[{ required: true, message: 'Select role' }]}>
           <StyledFormSelect
             placeholder="Select role"
             options={[
@@ -138,7 +112,7 @@ export const InviteUser = ({ open, setOpen, onSuccess }: InviteUserProps) => {
               { label: 'Viewer', value: 'viewer' },
             ]}
           />
-        </Form.Item>
+        </Form.Item> */}
       </Form>
       {/* {invitationUrl && (
         <>

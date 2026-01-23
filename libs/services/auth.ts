@@ -7,6 +7,7 @@ import {
   AuthPayload,
   ResetPasswordPayload,
   ForgotPasswordPayload,
+  ChangePasswordPayload,
 } from '@app/types'
 import { httpClient } from './httpClient'
 import { ENDPOINT } from '@app/data'
@@ -41,6 +42,16 @@ export const authService = {
 
   async resendOtp() {
     const { data } = await httpClient.post<ApiResponse<null>>(ENDPOINT.AUTH.RESEND_OTP)
+    return data
+  },
+
+  async changePassword(payload: ChangePasswordPayload) {
+    const { data } = await httpClient.patch<ApiResponse<null>>(ENDPOINT.AUTH.CHANGE_PASSWORD, payload)
+    return data
+  },
+
+  async deleteAccount(payload: { password: string; organizationId?: string }) {
+    const { data } = await httpClient.post<ApiResponse<null>>(ENDPOINT.AUTH.DELETE_ACCOUNT, payload)
     return data
   },
 }

@@ -49,4 +49,3 @@ export const INVITATION_FORM: IField[] = [
     type: EDynamicFormField.PRIMARY_BUTTON,
   },
 ]
-

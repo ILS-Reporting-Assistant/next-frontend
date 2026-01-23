@@ -659,7 +659,7 @@ export const StyledProgressStepsContainer = styled((props: BoxProps) => <Box {..
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
+  // width: 100%;
   max-width: 500px;
   margin: 0 auto;
   padding-top: 74px;

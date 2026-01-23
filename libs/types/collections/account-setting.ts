@@ -1,15 +1,6 @@
 import { ECardBrand } from '@app/enums'
 
 /**
- * Props for the AddPaymentMethodModal component
- */
-export interface AddPaymentMethodModalProps {
-  open: boolean
-  onCancel: () => void
-  onSuccess: () => void
-}
-
-/**
  * Feature item for plan cards
  */
 export interface PlanFeature {
@@ -29,6 +20,10 @@ export interface PlanCardProps {
   features: PlanFeature[]
   isPopular?: boolean
   onButtonClick?: () => void
+  disabled?: boolean
+  loading?: boolean
+  isDanger?: boolean
+  isActive?: boolean
 }
 
 /**
@@ -46,18 +41,6 @@ export interface PaymentMethodCardProps {
 }
 
 /**
- * Payment method data structure
- */
-export interface PaymentMethod {
-  id: string
-  cardholderName: string
-  cardNumber: string
-  expiryDate: string
-  cardBrand: ECardBrand
-  isDefault: boolean
-}
-
-/**
  * Billing period type
  */
 export type BillingPeriod = 'monthly' | 'annually'
@@ -68,4 +51,3 @@ export type BillingPeriod = 'monthly' | 'annually'
 export interface PlansProps {
   billingPeriod: BillingPeriod
 }
-

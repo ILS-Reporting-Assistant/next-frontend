@@ -2,7 +2,7 @@ import { Button, DatePicker, Drawer, FormItem, Notification, useForm } from '@ap
 import { IStore } from '@app/redux'
 import { clientsService, extractErrorMessage } from '@app/services'
 import { AddClientProps } from '@app/types'
-import { isValidationError } from '@app/utils'
+import { isValidationError, getLimitErrorMessage } from '@app/utils'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { StyledFooterContainer, StyledForm, StyledFormInput } from './elements'
@@ -39,8 +39,8 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email || undefined,
-        startDate: moment(values.startDate).startOf('day').format(),
-        endDate: moment(values.endDate).endOf('day').format(),
+        startDate: values.startDate ? moment(values.startDate.toDate()).startOf('day').format() : undefined,
+        endDate: values.endDate ? moment(values.endDate.toDate()).endOf('day').format() : undefined,
         ...(organizationId ? { organizationId } : {}),
       }
 
@@ -62,7 +62,7 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
 
       Notification({
         message: 'Cannot Add Client',
-        description: extractErrorMessage(error),
+        description: getLimitErrorMessage(extractErrorMessage(error), user.currentOrganizationRole),
         type: 'error',
       })
     } finally {
@@ -106,6 +106,10 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
             placeholder="Select start date"
             format="YYYY-MM-DD"
             popupStyle={{ height: '290px' }}
+            disabledDate={(current) => {
+              const endDate = form.getFieldValue('endDate')
+              return endDate && current.isAfter(endDate, 'day')
+            }}
           />
         </FormItem>
 
@@ -115,6 +119,10 @@ export const AddClient = ({ open, setOpen, onSuccess }: AddClientProps) => {
             placeholder="Select end date"
             format="YYYY-MM-DD"
             popupStyle={{ height: '340px' }}
+            disabledDate={(current) => {
+              const startDate = form.getFieldValue('startDate')
+              return startDate && current.isBefore(startDate, 'day')
+            }}
           />
         </FormItem>
       </StyledForm>

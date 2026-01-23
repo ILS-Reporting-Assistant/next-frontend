@@ -6,7 +6,7 @@ import { changeDynamicTheme, IStore, logout, persistor, store } from '@app/redux
 import { GlobalStyles } from '@app/styles'
 import { getThemeColors, THEME } from '@app/theme'
 import { ConfigProvider } from 'antd'
-import { StyledBanner } from 'libs/components/layout/elements'
+import { StyledBanner, StyledContentLayout } from 'libs/components/layout/elements'
 import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { AppFonts } from 'public'
@@ -42,11 +42,14 @@ function Main({ Component, pageProps }: AppProps) {
 
   const authenticateUser = () => {
     if (user.uid) {
-      if (route === ROUTE.AUTH.SIGN_IN) {
-        router.replace(ROUTE.DASHBOARD)
-      }
-      if (route === ROUTE.AUTH.SIGN_UP) {
-        router.replace(ROUTE.AUTH.VERIFY_ACCOUNT)
+      if (!user.emailVerifiedAt) {
+        if (route !== ROUTE.AUTH.VERIFY_ACCOUNT) {
+          router.replace(ROUTE.AUTH.VERIFY_ACCOUNT)
+        }
+      } else {
+        if (route === ROUTE.AUTH.SIGN_IN || route === ROUTE.AUTH.SIGN_UP) {
+          router.replace(ROUTE.DASHBOARD)
+        }
       }
     } else {
       dispatch(logout())
@@ -158,11 +161,11 @@ function Main({ Component, pageProps }: AppProps) {
                     />
                     <PlanUsage isCollapsed={isCollapsed} />
                   </Sider>
-                  <Layout>
+                  <StyledContentLayout>
                     <Content header sidebar>
                       <Component {...pageProps} />
                     </Content>
-                  </Layout>
+                  </StyledContentLayout>
                 </Layout>
               </PlanUsageProvider>
             </If>

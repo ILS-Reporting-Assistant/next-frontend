@@ -1,16 +1,17 @@
-import { Box, Button, Dropdown, Icon, Modal, Spacer, Table, Text, Title, Notification } from '@app/components'
+import { Box, Button, Dropdown, Icon, Modal, Spacer, Table, Text, Title, Notification, Tooltip } from '@app/components'
 import { ROUTE } from '@app/data'
 import { useRouter } from 'next/router'
 import { StyledClientAvatar, StyledFlexContainer, StyledSearch } from './elements'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
-import { useState, useEffect, useCallback } from 'react'
-import { reportService, clientsService, extractErrorMessage } from '@app/services'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { reportService, extractErrorMessage } from '@app/services'
 import { isValidationError, getFullName, getAvatarText } from '@app/utils'
-import { Report, ReportsListQuery, Client } from '@app/types'
+import { Report, ReportsListQuery } from '@app/types'
 import { ReportType } from '@app/enums'
 import { useDownloadReport } from '@app/hooks'
 import moment from 'moment'
+import { usePlanUsage } from '../layout'
 
 export const AssessmentReports = () => {
   const router = useRouter()
@@ -20,12 +21,13 @@ export const AssessmentReports = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined)
-  const [clients, setClients] = useState<Client[]>([])
-  const [clientsLoading, setClientsLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null)
+  const { usage, refresh } = usePlanUsage()
 
   const { downloadDocx, downloadPdf, isDownloadingDocx, isDownloadingPdf } = useDownloadReport({
     showSuccessNotification: true,
@@ -42,10 +44,12 @@ export const AssessmentReports = () => {
         reportType: ReportType.ASSESSMENT,
         ...(organizationId ? { organizationId } : {}),
         ...(selectedClientId ? { clientId: selectedClientId } : {}),
+        ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
       }
       const response = await reportService.getReports(query)
       setReports(response.reports || [])
       setTotal(response.total || 0)
+      refresh()
     } catch (error) {
       if (isValidationError(error)) return
 
@@ -57,36 +61,22 @@ export const AssessmentReports = () => {
     } finally {
       setLoading(false)
     }
-  }, [organizationId, currentPage, selectedClientId])
+  }, [organizationId, currentPage, selectedClientId, debouncedSearchTerm])
 
-  const fetchClients = useCallback(async () => {
-    setClientsLoading(true)
-    try {
-      const response = await clientsService.getOrganizationClients(organizationId, {
-        page: 1,
-        limit: 100,
-      })
-      setClients(response.data?.clients || [])
-    } catch (error) {
-      if (isValidationError(error)) return
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      if (searchTerm && currentPage !== 1) {
+        setCurrentPage(1)
+      }
+    }, 300) // Debounce search by 300ms
 
-      Notification({
-        message: 'Failed to fetch clients',
-        description: extractErrorMessage(error as Error),
-        type: 'error',
-      })
-    } finally {
-      setClientsLoading(false)
-    }
-  }, [organizationId])
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, currentPage])
 
   useEffect(() => {
     fetchReports()
   }, [fetchReports])
-
-  useEffect(() => {
-    fetchClients()
-  }, [fetchClients])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -99,9 +89,8 @@ export const AssessmentReports = () => {
     setCurrentPage(page)
   }
 
-  const handleClientChange = (value: string) => {
-    setSelectedClientId(value || undefined)
-    setCurrentPage(1)
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
   }
 
   const formatDate = (dateString?: string) => {
@@ -128,13 +117,6 @@ export const AssessmentReports = () => {
       return getFullName(report.userId as { firstName?: string; lastName?: string })
     }
     return '-'
-  }
-
-  const getClientOptions = () => {
-    return clients.map((client) => ({
-      value: client._id,
-      label: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email || '-',
-    }))
   }
 
   const openModal = (report: Report) => {
@@ -305,15 +287,40 @@ export const AssessmentReports = () => {
     },
   ]
 
+  const buttonState = useMemo(() => {
+    const isFreePlan = usage?.plan?.amount === 0
+    const limitReached = usage?.remainingInitialAssessmentReports === 0
+    const disabled = (isFreePlan && limitReached) || limitReached
+
+    let tooltipMessage: string | undefined
+    if (isFreePlan && limitReached) {
+      tooltipMessage = 'Please upgrade your plan to add more initial assessment reports'
+    } else if (limitReached) {
+      tooltipMessage = 'You have reached the limit for creating initial assessment reports'
+    }
+
+    return { disabled, tooltipMessage }
+  }, [usage?.plan?.amount, usage?.remainingInitialAssessmentReports])
+
   return (
     <Box>
       <StyledFlexContainer>
         <Title level={2}>Initial Assessment Reports</Title>
-        <Button onClick={() => router.replace(ROUTE.CREATE_ASSESSMENT_REPORTS)}>Create New Report</Button>
+        <Tooltip title={buttonState.tooltipMessage}>
+          <Button onClick={() => router.push(ROUTE.CREATE_ASSESSMENT_REPORTS)} disabled={buttonState.disabled}>
+            Create New Report
+          </Button>
+        </Tooltip>
       </StyledFlexContainer>
       <Spacer value={16} />
       <Box display="flex">
-        <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />
+        <StyledSearch
+          placeholder="Search"
+          prefix={<Icon.SearchOutlined />}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          allowClear
+        />
         {/* <Select
           marginLeft="16px"
           showSearch

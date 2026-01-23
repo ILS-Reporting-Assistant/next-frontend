@@ -2,6 +2,7 @@ import { CheckOutlined } from '@ant-design/icons'
 import { PlanCardProps } from '@app/types'
 import React from 'react'
 import {
+  StyledActiveTag,
   StyledPlanButton,
   StyledPlanCard,
   StyledPlanDescription,
@@ -23,16 +24,28 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   isPopular = false,
   priceSubText,
   onButtonClick,
+  disabled = false,
+  loading = false,
+  isDanger = false,
+  isActive = false,
 }) => {
   return (
     <StyledPlanCard>
-      {isPopular && <StyledPopularTag>Popular</StyledPopularTag>}
+      {!isActive && isPopular && <StyledPopularTag>Popular</StyledPopularTag>}
+      {isActive && <StyledActiveTag>Active</StyledActiveTag>}
       <StyledPlanTitle>{title}</StyledPlanTitle>
-      <StyledPlanPrice>{price}
+      <StyledPlanPrice>
+        {price}
         <StyledPlanPriceSubText>{priceSubText}</StyledPlanPriceSubText>
       </StyledPlanPrice>
       <StyledPlanDescription>{description}</StyledPlanDescription>
-      <StyledPlanButton type={buttonType} onClick={onButtonClick}>
+      <StyledPlanButton
+        type={buttonType}
+        onClick={onButtonClick}
+        disabled={disabled}
+        loading={loading}
+        danger={isDanger}
+      >
         {buttonText}
       </StyledPlanButton>
       <StyledPlanFeatures>
@@ -46,4 +59,3 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     </StyledPlanCard>
   )
 }
-

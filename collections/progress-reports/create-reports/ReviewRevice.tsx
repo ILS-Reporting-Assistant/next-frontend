@@ -1,4 +1,4 @@
-import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification, Tooltip } from '@app/components'
 import { useEffect, useState, useRef } from 'react'
 import { extractErrorMessage } from '../../../libs/services/auth'
 import { reportService } from '../../../libs/services/report'
@@ -39,6 +39,7 @@ import {
   StyledStarIconContainer,
 } from './elements'
 import { useReportEditor } from '@app/hooks'
+import { usePlanUsage } from '../../layout'
 
 export const ReviewRevice = ({
   onGoBack,
@@ -51,6 +52,7 @@ export const ReviewRevice = ({
   isSaving = false,
   reportType = ReportType.PROGRESS,
 }: ReviewReviceProps) => {
+  const { usage } = usePlanUsage()
   const [reportName, setReportName] = useState(defaultReportName)
   const [reportContent, setReportContent] = useState(defaultReportContent)
   const [revisionRequest, setRevisionRequest] = useState('')
@@ -355,18 +357,25 @@ export const ReviewRevice = ({
             value={revisionRequest}
             onChange={(e) => setRevisionRequest(e.target.value)}
             autoSize={{ minRows: 1, maxRows: 8 }}
+            disabled={usage?.plan?.amount === 0}
           />
 
           <StyledReviseButtonWrapper>
-            <StyledReviseButton
-              type="primary"
-              icon={<Icon.BulbOutlined />}
-              onClick={handleRequestAIRevision}
-              loading={isRequestingRevision}
-              disabled={isRequestingRevision || !revisionRequest.trim()}
+            <Tooltip
+              title={
+                usage?.plan?.amount === 0 ? 'Please purchase a plan to access the Revise with AI feature.' : undefined
+              }
             >
-              Revise with AI
-            </StyledReviseButton>
+              <StyledReviseButton
+                type="primary"
+                icon={<Icon.BulbOutlined />}
+                onClick={handleRequestAIRevision}
+                loading={isRequestingRevision}
+                disabled={isRequestingRevision || !revisionRequest.trim() || usage?.plan?.amount === 0}
+              >
+                Revise with AI
+              </StyledReviseButton>
+            </Tooltip>
           </StyledReviseButtonWrapper>
         </StyledAIRevisionsSection>
       </StyledStep4ReviewContentWrapper>
@@ -390,7 +399,7 @@ export const ReviewRevice = ({
                   type="primary"
                   onClick={handleSaveReport}
                   loading={isSaving}
-                  disabled={isSaving}
+                  disabled={isSaving || isRequestingRevision}
                   icon={<Icon.SaveOutlined />}
                 >
                   Save Report

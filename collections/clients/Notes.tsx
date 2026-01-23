@@ -29,10 +29,11 @@ export const Notes: React.FC<NotesProps> = ({ clientId }) => {
           cursor,
           limit: 10,
         })
+        const filteredReports = response.reports.filter((r) => !r.fileId && (!r.fileIds || r.fileIds.length === 0))
         if (cursor) {
-          setReports((prev) => [...prev, ...response.reports])
+          setReports((prev) => [...prev, ...filteredReports])
         } else {
-          setReports(response.reports)
+          setReports(filteredReports)
         }
         setNextCursor(response.nextCursor)
         setHasMore(response.hasMore)

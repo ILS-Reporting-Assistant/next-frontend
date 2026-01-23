@@ -4,13 +4,18 @@ export const ENDPOINT = {
     LOGIN: '/auth/login',
     REQUEST_PASSWORD_RESET: '/auth/request-password-reset',
     RESET_PASSWORD: '/auth/reset-password',
+    CHANGE_PASSWORD: '/auth/change-password',
     VERIFY_OTP: '/auth/verify-otp',
     RESEND_OTP: '/auth/resend-otp',
     REFRESH: '/auth/refresh',
+    DELETE_ACCOUNT: '/auth/delete/account',
   },
   ORGANIZATIONS: {
+    GET: (organizationId: string) => `/organizations/${organizationId}`,
+    UPDATE: '/organizations',
     USERS: (organizationId: string) => `/organizations/${organizationId}/users`,
     INVITATIONS: (organizationId: string) => `/organizations/${organizationId}/invitations`,
+    DELETE_USER: (organizationId: string, userId: string) => `/organizations/${organizationId}/users/${userId}`,
   },
   CLIENTS: {
     LIST: '/clients',
@@ -33,7 +38,6 @@ export const ENDPOINT = {
   REPORTS: {
     LIST: '/reports',
     GET: (reportId: string) => `/reports/${reportId}`,
-    COUNT: '/reports/count',
     BY_CLIENT: (clientId: string) => `/reports/client/${clientId}`,
     GENERATE_ASSESSMENT_REPORT: '/reports/generate/assessment',
     GENERATE_PROGRESS_REPORT: '/reports/generate/progress',
@@ -45,5 +49,24 @@ export const ENDPOINT = {
   },
   STATUS_HISTORY: {
     BY_CLIENT: (clientId: string) => `/status-history/client/${clientId}`,
+  },
+  SUBSCRIPTIONS: {
+    PLANS: '/subscriptions/plans',
+    USAGE: '/subscriptions/usage',
+    SWITCH_PLAN: '/subscriptions/switch-plan',
+    CANCEL: '/subscriptions/cancel',
+    REACTIVATE: '/subscriptions/reactivate',
+    PAYMENT_METHODS: '/subscriptions/payment-methods',
+    CREATE_PAYMENT_METHOD: '/subscriptions/payment-methods',
+    UPDATE_PAYMENT_METHOD: (id: string) => `/subscriptions/payment-methods/${id}`,
+    SET_DEFAULT_PAYMENT_METHOD: (id: string) => `/subscriptions/payment-methods/${id}/set-default`,
+    REMOVE_PAYMENT_METHOD: (id: string) => `/subscriptions/payment-methods/${id}`,
+    ADD_EXTRA_SEATS: '/subscriptions/addons/seats',
+    ADD_EXTRA_CLIENTS: '/subscriptions/addons/clients',
+    REDUCE_EXTRA_SEATS: '/subscriptions/addons/seats/reduce',
+    REDUCE_EXTRA_CLIENTS: '/subscriptions/addons/clients/reduce',
+  },
+  USERS: {
+    PROFILE: '/users/profile',
   },
 }

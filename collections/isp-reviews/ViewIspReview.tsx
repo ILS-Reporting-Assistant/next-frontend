@@ -1,35 +1,24 @@
-import { Box, Button, Dropdown, Icon, Menu, MenuItem, Notification } from '@app/components'
-import { ROUTE } from '@app/data'
+import { Box, Button, Dropdown, Icon, Menu, MenuItem } from '@app/components'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { extractErrorMessage, reportService } from '@app/services'
 import {
   StyledButtonContainer,
   StyledButtonContainerWrapper,
   StyledButtonWrapper,
-  StyledCopyButton,
   StyledCopyDownloadContainer,
-  StyledDownloadButton,
-  StyledFinalReportHeading,
-  StyledFullscreenButton,
   StyledFullscreenModal,
   StyledFullscreenModalContent,
-  StyledFullscreenReportContent,
   StyledFullscreenReportName,
   StyledGoBackButton,
   StyledIconWithRightMargin,
   StyledReportContentLabel,
   StyledReportContentLabelWrapper,
-  StyledReportContentTextArea,
   StyledReportContentWrapper,
   StyledReportNameInput,
   StyledReportNameLabel,
   StyledStep4ReviewContentWrapper,
   StyledStep4ReviewDescription,
   StyledStep4ReviewHeading,
-  StyledBackLink,
-  StyledBackIcon,
-  StyledBackIconInner,
   StyledContainer,
   StyledContentWrapper,
   StyledButton,

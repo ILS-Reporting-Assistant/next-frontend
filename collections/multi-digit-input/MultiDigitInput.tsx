@@ -49,7 +49,7 @@ export const MultiDigitInput: React.FC<MultiDigitProps> = ({ lengthOfDigits, ...
               <StyledInput
                 key={index}
                 onClick={(e: React.MouseEvent<HTMLInputElement>) => {
-                  ;(e.target as HTMLInputElement).setSelectionRange(0, 1)
+                  (e.target as HTMLInputElement).setSelectionRange(0, 1)
                 }}
                 id={`security-code-${index}`}
                 value={value === '-' ? '' : value}

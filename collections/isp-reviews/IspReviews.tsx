@@ -1,16 +1,17 @@
-import { Box, Button, Dropdown, Icon, Modal, Select, Spacer, Table, Text, Title, Notification } from '@app/components'
+import { Box, Button, Dropdown, Icon, Modal, Spacer, Table, Text, Title, Notification, Tooltip } from '@app/components'
 import { ROUTE } from '@app/data'
 import { useRouter } from 'next/router'
 import { StyledClientAvatar, StyledFlexContainer, StyledSearch } from './elements'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
-import { useState, useEffect, useCallback } from 'react'
-import { reportService, clientsService, extractErrorMessage } from '@app/services'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { reportService, extractErrorMessage } from '@app/services'
 import { isValidationError, getFullName, getAvatarText } from '@app/utils'
 import { useDownloadReport } from '@app/hooks'
-import { Report, ReportsListQuery, Client } from '@app/types'
+import { Report, ReportsListQuery } from '@app/types'
 import { ReportType } from '@app/enums'
 import moment from 'moment'
+import { usePlanUsage } from '../layout'
 
 export const IspReviews = () => {
   const router = useRouter()
@@ -20,12 +21,15 @@ export const IspReviews = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined)
-  const [clients, setClients] = useState<Client[]>([])
-  const [clientsLoading, setClientsLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('')
+
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null)
+
+  const { usage, refresh } = usePlanUsage()
 
   const { downloadDocx, downloadPdf, isDownloadingDocx, isDownloadingPdf } = useDownloadReport({
     showSuccessNotification: true,
@@ -42,10 +46,12 @@ export const IspReviews = () => {
         reportType: ReportType.ISP,
         ...(organizationId ? { organizationId } : {}),
         ...(selectedClientId ? { clientId: selectedClientId } : {}),
+        ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
       }
       const response = await reportService.getReports(query)
       setReports(response.reports || [])
       setTotal(response.total || 0)
+      refresh()
     } catch (error) {
       if (isValidationError(error)) return
 
@@ -57,37 +63,37 @@ export const IspReviews = () => {
     } finally {
       setLoading(false)
     }
-  }, [organizationId, currentPage, selectedClientId])
+  }, [organizationId, currentPage, selectedClientId, debouncedSearchTerm])
 
-  const fetchClients = useCallback(async () => {
-    if (!organizationId) return
-    setClientsLoading(true)
-    try {
-      const response = await clientsService.getOrganizationClients(organizationId, {
-        page: 1,
-        limit: 100,
-      })
-      setClients(response.data?.clients || [])
-    } catch (error) {
-      if (isValidationError(error)) return
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      if (searchTerm && currentPage !== 1) {
+        setCurrentPage(1)
+      }
+    }, 300) // Debounce search by 300ms
 
-      Notification({
-        message: 'Failed to fetch clients',
-        description: extractErrorMessage(error as Error),
-        type: 'error',
-      })
-    } finally {
-      setClientsLoading(false)
-    }
-  }, [organizationId])
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, currentPage])
 
   useEffect(() => {
     fetchReports()
   }, [fetchReports])
 
-  useEffect(() => {
-    fetchClients()
-  }, [fetchClients])
+  const buttonState = useMemo(() => {
+    const isFreePlan = usage?.plan?.amount === 0
+    const limitReached = usage?.remainingISPReviewReports === 0
+    const disabled = (isFreePlan && limitReached) || limitReached
+
+    let tooltipMessage: string | undefined
+    if (isFreePlan && limitReached) {
+      tooltipMessage = 'Please upgrade your plan to add more annual ISP reviews'
+    } else if (limitReached) {
+      tooltipMessage = 'You have reached the limit for creating annual ISP reviews'
+    }
+
+    return { disabled, tooltipMessage }
+  }, [usage?.plan?.amount, usage?.remainingISPReviewReports])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -114,6 +120,10 @@ export const IspReviews = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
   }
 
   const formatDate = (dateString?: string) => {
@@ -298,11 +308,21 @@ export const IspReviews = () => {
     <Box>
       <StyledFlexContainer>
         <Title level={2}>Annual ISP Review</Title>
-        <Button onClick={() => router.replace(ROUTE.CREATE_ISP_REVIEWS)}>Create New Report</Button>
+        <Tooltip title={buttonState.tooltipMessage}>
+          <Button onClick={() => router.push(ROUTE.CREATE_ISP_REVIEWS)} disabled={buttonState.disabled}>
+            Create New Report
+          </Button>
+        </Tooltip>
       </StyledFlexContainer>
       <Spacer value={16} />
       <Box display="flex">
-        <StyledSearch placeholder="Search" prefix={<Icon.SearchOutlined />} />
+        <StyledSearch
+          placeholder="Search"
+          prefix={<Icon.SearchOutlined />}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          allowClear
+        />
         {/* <Select
           marginLeft="16px"
           showSearch

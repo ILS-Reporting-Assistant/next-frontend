@@ -1,14 +1,18 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { useSelector } from 'react-redux'
 import { IStore } from '@app/redux'
-import { reportService } from '@app/services'
+import { subscriptionsService } from '@app/services'
+import { SubscriptionUsage } from '@app/types'
 
 interface PlanUsageContextType {
   reportsUsed: number
-  totalReports: number
+  totalReports: number | null
+  clientsUsed: number
+  totalClients: number | null
   isLoading: boolean
   error: string | null
   refresh: () => Promise<void>
+  usage: SubscriptionUsage | null
 }
 
 const PlanUsageContext = createContext<PlanUsageContextType | undefined>(undefined)
@@ -19,8 +23,11 @@ interface PlanUsageProviderProps {
 
 export const PlanUsageProvider: React.FC<PlanUsageProviderProps> = ({ children }) => {
   const [reportsUsed, setReportsUsed] = useState<number>(0)
-  const [totalReports, setTotalReports] = useState<number>(5)
+  const [totalReports, setTotalReports] = useState<number | null>(null)
+  const [clientsUsed, setClientsUsed] = useState<number>(0)
+  const [totalClients, setTotalClients] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [usage, setUsage] = useState<SubscriptionUsage | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const accessToken = useSelector((state: IStore) => state.user?.accessToken)
@@ -35,12 +42,14 @@ export const PlanUsageProvider: React.FC<PlanUsageProviderProps> = ({ children }
     setIsLoading(true)
     setError(null)
     try {
-      const data = await reportService.getReportCount(organizationId || undefined)
-      setReportsUsed(data.reportsUsed)
-      setTotalReports(data.totalReports)
+      const [usageResponse] = await Promise.all([subscriptionsService.getUsage(organizationId || undefined)])
+      setUsage(usageResponse.data)
+      setReportsUsed(usageResponse.data.usedReports)
+      setTotalReports(usageResponse.data.totalReports)
+      setClientsUsed(usageResponse.data.usedActiveClients)
+      setTotalClients(usageResponse.data.maxActiveClients)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch report count')
-      console.error('Error fetching report count:', err)
     } finally {
       setIsLoading(false)
     }
@@ -57,9 +66,12 @@ export const PlanUsageProvider: React.FC<PlanUsageProviderProps> = ({ children }
       value={{
         reportsUsed,
         totalReports,
+        clientsUsed,
+        totalClients,
         isLoading,
         error,
         refresh: fetchReportCount,
+        usage,
       }}
     >
       {children}
